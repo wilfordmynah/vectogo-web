@@ -13,7 +13,7 @@ const BLOBS = [
   { x: 0.7, y: 0.75, r: 0.35, color: "205,184,255" }, // lavender
 ];
 
-const MAX_BLOCK = 150; // pixel size at the top of the page
+const MAX_BLOCK = 38; // pixel size at the top of the page
 const SMOOTH_AT = 1; // fraction of the hero scrolled when it's fully smooth
 const COLOR_STEP = 28; // fewer colors while chunky, so each block stands out
 

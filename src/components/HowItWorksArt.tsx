@@ -39,15 +39,13 @@ function SillySun({ cx, cy, size, className = "sun" }: { cx: number; cy: number;
   );
 }
 
-/** 1. Send it: a sad little file hops into the upload tray. */
+/** 1. Send it: a pixelated Silly sun file hops into the upload tray. */
 export function SendItArt() {
   const ref = useScene((q) => {
     const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.6 });
     tl.set(q(".file"), { x: 0, y: 0, scale: 1, rotation: 0, opacity: 1, transformOrigin: "50% 50%" })
       .set(q(".check"), { scale: 0, transformOrigin: "50% 50%" })
       .set(q(".speed"), { opacity: 0 })
-      .set(q(".check .sun-rays"), { rotation: 0, transformOrigin: "50% 50%" })
-      .set(q(".check .sun-tongue"), { rotation: 0, transformOrigin: "0% 40%" })
       // nervous wiggle
       .to(q(".file"), { rotation: -6, duration: 0.12, repeat: 5, yoyo: true, ease: "sine.inOut" })
       // crouch, then jump
@@ -64,16 +62,14 @@ export function SendItArt() {
       .to(q(".file"), { opacity: 0, duration: 0.1 })
       // tray gulps
       .to(q(".tray"), { scaleY: 0.8, scaleX: 1.12, transformOrigin: "50% 100%", duration: 0.12, yoyo: true, repeat: 1 })
-      // the silly sun pops up to cheer
+      // tray gives a thumbs up
       .to(q(".check"), { scale: 1, duration: 0.4, ease: "back.out(3)" })
-      .to(q(".check .sun-rays"), { rotation: 360, duration: 1, ease: "power2.out" }, "<")
-      .to(q(".check .sun-tongue"), { rotation: 18, duration: 0.12, yoyo: true, repeat: 5, ease: "sine.inOut" }, "<0.2")
       .to({}, { duration: 1 });
     return tl;
   }, (q) => gsap.set(q(".check"), { scale: 1, transformOrigin: "50% 50%" }));
 
   return (
-    <svg ref={ref} viewBox="20 40 210 120" className="h-44 w-full overflow-visible" role="img" aria-label="A logo file jumping into the upload tray, and a silly sun cheering">
+    <svg ref={ref} viewBox="20 40 210 120" className="h-44 w-full overflow-visible" role="img" aria-label="A pixelated sun logo jumping into the upload tray">
       <path className="arc" d="M62 120 C 80 20, 160 10, 186 62" fill="none" stroke="none" />
       {/* speed lines */}
       <g className="speed" stroke={MAGENTA} strokeWidth="4" strokeLinecap="round" opacity="0">
@@ -86,77 +82,74 @@ export function SendItArt() {
         <rect x="150" y="62" width="76" height="52" rx="14" fill="#fff" stroke={INK} strokeWidth="4" />
         <path d="M188 100 V76 M178 86 l10 -10 l10 10" stroke={PURPLE} strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       </g>
-      <SillySun cx={206} cy={56} size={46} className="check" />
-      {/* the file, with a pixelly sad face */}
+      <g className="check">
+        <circle cx="216" cy="56" r="14" fill={MAGENTA} />
+        <path d="M209 56 l5 5 l9 -10" stroke="#fff" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      </g>
+      {/* the file: a blurry, pixelly Silly */}
       <g className="file">
         <path d="M38 82 h34 l14 14 v46 a6 6 0 0 1 -6 6 h-42 a6 6 0 0 1 -6 -6 v-54 a6 6 0 0 1 6 -6 z" fill="#fff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
         <path d="M72 82 v14 h14" fill="none" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <rect x="46" y="104" width="6" height="6" fill={PURPLE} />
-        <rect x="66" y="104" width="6" height="6" fill={PURPLE} />
-        <path d="M48 132 h4 v-4 h14 v4 h4" stroke={PURPLE} strokeWidth="4" fill="none" />
+        <PixelSun cx={59} cy={118} size={40} fill={SUN} />
       </g>
     </svg>
   );
 }
 
-/** 2. We get to work: the pen tool redraws a blocky smile while the sun watches. */
+/** 2. We get to work: the pen traces part of the pixelated Silly as a smooth line. */
 export function GetToWorkArt() {
+  const CX = 125, CY = 92, SIZE = 124;
+  const { k, transform } = sunTransform(CX, CY, SIZE);
+  const TRACE = 0.42; // how much of the outline gets traced each loop
+  const STOPS = [0, 0.14, 0.28, TRACE]; // where anchor points land
+
   const ref = useScene((q) => {
-    const curve = q(".curve")[0] as SVGPathElement;
-    const len = curve.getTotalLength();
-    const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.8 });
-    tl.set(curve, { strokeDasharray: len, strokeDashoffset: len })
-      .set(q(".pixel"), { opacity: 1, scale: 1, transformOrigin: "50% 50%" })
+    const rays = q(".trace")[0] as SVGPathElement;
+    const len = rays.getTotalLength();
+    placeAnchors(q, rays, len, STOPS, k);
+    const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.6 });
+    tl.set(rays, { strokeDasharray: len, strokeDashoffset: len })
       .set(q(".anchor"), { scale: 0, transformOrigin: "50% 50%" })
       .set(q(".handle"), { opacity: 0 })
-      .set(q(".pen"), { opacity: 1 })
-      .set(q(".sun"), { scale: 0.85, transformOrigin: "50% 50%" })
-      .set(q(".sun .sun-rays"), { rotation: 0, transformOrigin: "50% 50%" })
-      .set(q(".sun .sun-eye"), { scaleY: 1, transformOrigin: "50% 50%" })
-      .set(q(".sun .sun-tongue"), { rotation: 0, transformOrigin: "0% 40%" })
-      .to(q(".anchor"), { scale: 1, duration: 0.3, stagger: 0.15, ease: "back.out(3)" })
-      .to(q(".handle"), { opacity: 1, duration: 0.2 }, "-=0.1")
-      .to(curve, { strokeDashoffset: 0, duration: 1.4, ease: "power1.inOut" })
-      .to(
-        q(".pen"),
-        { motionPath: { path: curve, align: curve, alignOrigin: [0.1, 0.9] }, duration: 1.4, ease: "power1.inOut" },
-        "<",
-      )
-      // the sun watches the line go, rays turning
-      .to(q(".sun .sun-rays"), { rotation: 120, duration: 1.4, ease: "power1.inOut" }, "<")
-      .to(q(".pixel"), { opacity: 0, scale: 0.2, duration: 0.35, stagger: { each: 0.03, from: "random" } }, "-=0.6")
-      .to(q(".handle"), { opacity: 0, duration: 0.3 })
-      .to(q(".pen"), { y: "-=14", rotation: -15, duration: 0.2, yoyo: true, repeat: 1 }, "<")
-      // and approves
-      .to(q(".sun"), { scale: 1.15, duration: 0.2, yoyo: true, repeat: 1, ease: "power2.out" }, "<")
-      .to(q(".sun .sun-eye"), { scaleY: 0.1, duration: 0.1, yoyo: true, repeat: 1 }, "<")
-      .to(q(".sun .sun-tongue"), { rotation: 18, duration: 0.12, yoyo: true, repeat: 3, ease: "sine.inOut" }, "<0.1")
-      .to({}, { duration: 1.4 });
+      .set(q(".pixels"), { opacity: 0.5 })
+      .set(q(".pen"), { opacity: 1, x: 0, y: 0, rotation: 0 })
+      .to(q(".pen"), {
+        motionPath: { path: rays, align: rays, alignOrigin: [0.1, 0.9], start: 0, end: TRACE },
+        duration: 2.4,
+        ease: "power1.inOut",
+      })
+      .to(rays, { strokeDashoffset: len * (1 - TRACE), duration: 2.4, ease: "power1.inOut" }, "<")
+      .to(q(".anchor"), { scale: 1, duration: 0.25, stagger: 2.4 / (STOPS.length - 1), ease: "back.out(3)" }, "<")
+      .to(q(".handle"), { opacity: 1, duration: 0.2, stagger: 2.4 / (STOPS.length - 1) }, "<0.1")
+      .to(q(".pen"), { y: "-=12", rotation: -15, duration: 0.2, yoyo: true, repeat: 1 })
+      .to({}, { duration: 1.4 })
+      .to([rays, q(".anchor"), q(".handle")].flat(), { opacity: 0, duration: 0.3 })
+      .set([rays, q(".anchor"), q(".handle")].flat(), { opacity: 1 });
     return tl;
   }, (q) => {
-    gsap.set(q(".pixel"), { opacity: 0 });
-    gsap.set(q(".handle"), { opacity: 0 });
+    const rays = q(".trace")[0] as SVGPathElement;
+    const len = rays.getTotalLength();
+    placeAnchors(q, rays, len, STOPS, k);
+    gsap.set(rays, { strokeDasharray: len, strokeDashoffset: len * (1 - TRACE) });
+    gsap.set(q(".pixels"), { opacity: 0.5 });
   });
 
-  // a chunky pixel smile underneath
-  const pixels = [
-    [60, 70], [72, 82], [84, 94], [96, 100], [108, 104], [120, 104], [132, 104], [144, 100], [156, 94], [168, 82], [180, 70],
-  ];
   return (
-    <svg ref={ref} viewBox="20 24 210 136" className="h-44 w-full overflow-visible" role="img" aria-label="A pen tool redrawing a blocky smile as a smooth curve">
-      {pixels.map(([x, y]) => (
-        <rect key={x} className="pixel" x={x - 6} y={y - 6} width="12" height="12" fill={MAGENTA} opacity="0.85" />
-      ))}
-      <g className="handle" stroke={MAGENTA} strokeWidth="1.5">
-        <line x1="60" y1="70" x2="90" y2="130" />
-        <line x1="180" y1="70" x2="150" y2="130" />
-        <circle cx="90" cy="130" r="4" fill="#fff" />
-        <circle cx="150" cy="130" r="4" fill="#fff" />
+    <svg ref={ref} viewBox="20 24 210 136" className="h-44 w-full overflow-visible" role="img" aria-label="A pen tool tracing the pixelated sun as a smooth vector line">
+      <PixelSun cx={CX} cy={CY} size={SIZE} fill={MAGENTA} className="pixels" />
+      <g transform={transform}>
+        <path className="trace" d={SUN_RAYS} fill="none" stroke={SUN} strokeWidth={5 / k} strokeLinecap="round" strokeLinejoin="round" />
+        {STOPS.map((_, i) => (
+          <g key={i}>
+            <g className="handle" stroke={MAGENTA} strokeWidth={1.5 / k}>
+              <line className="handle-line" />
+              <circle className="handle-a" r={3.5 / k} fill="#fff" />
+              <circle className="handle-b" r={3.5 / k} fill="#fff" />
+            </g>
+            <rect className="anchor" width={10 / k} height={10 / k} fill="#fff" stroke={INK} strokeWidth={2.5 / k} />
+          </g>
+        ))}
       </g>
-      <path className="curve" d="M60 70 C 90 130, 150 130, 180 70" fill="none" stroke={PURPLE} strokeWidth="10" strokeLinecap="round" />
-      <rect className="anchor" x="53" y="63" width="14" height="14" fill="#fff" stroke={INK} strokeWidth="3" />
-      <rect className="anchor" x="173" y="63" width="14" height="14" fill="#fff" stroke={INK} strokeWidth="3" />
-      <SillySun cx={120} cy={46} size={40} />
       {/* pen nib */}
       <g className="pen">
         <path d="M0 0 l10 -26 h12 l10 26 l-16 12 z" fill="#fff" stroke={INK} strokeWidth="3" strokeLinejoin="round" transform="translate(-16 -12) rotate(20 16 12)" />
@@ -164,6 +157,35 @@ export function GetToWorkArt() {
       </g>
     </svg>
   );
+}
+
+/** Puts each anchor square (and its curve handles) at a point along the path. */
+function placeAnchors(q: Q, path: SVGPathElement, len: number, stops: number[], k: number) {
+  const anchors = q(".anchor");
+  const handles = q(".handle");
+  const half = 5 / k;
+  const reach = 16 / k;
+  stops.forEach((t, i) => {
+    const at = Math.min(len - 1, Math.max(1, t * len));
+    const p = path.getPointAtLength(at);
+    const a = path.getPointAtLength(at - 1);
+    const b = path.getPointAtLength(at + 1);
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const d = Math.hypot(dx, dy) || 1;
+    const ux = (dx / d) * reach, uy = (dy / d) * reach;
+    anchors[i].setAttribute("x", String(p.x - half));
+    anchors[i].setAttribute("y", String(p.y - half));
+    const h = handles[i];
+    const line = h.querySelector(".handle-line")!;
+    line.setAttribute("x1", String(p.x - ux));
+    line.setAttribute("y1", String(p.y - uy));
+    line.setAttribute("x2", String(p.x + ux));
+    line.setAttribute("y2", String(p.y + uy));
+    h.querySelector(".handle-a")!.setAttribute("cx", String(p.x - ux));
+    h.querySelector(".handle-a")!.setAttribute("cy", String(p.y - uy));
+    h.querySelector(".handle-b")!.setAttribute("cx", String(p.x + ux));
+    h.querySelector(".handle-b")!.setAttribute("cy", String(p.y + uy));
+  });
 }
 
 /** 3. Good to go: the silly sun, files popping out, confetti. */
@@ -221,6 +243,59 @@ export function GoodToGoArt() {
       <SillySun cx={120} cy={110} size={96} className="face" />
     </svg>
   );
+}
+
+// Silly sun as a low-res bitmap: 26 x 26 blocks, "#" is filled.
+const SUN_PIXELS = [
+  "........##......##........",
+  "........###....###........",
+  "........#.##..##.#........",
+  "........#..####..#........",
+  "...#....#..####..#....#...",
+  "..#####.#...##...#.#####..",
+  "..##.####........####.##..",
+  "..##.................###..",
+  "...##................##...",
+  "....##..####..####..##....",
+  "....##..####..####..##....",
+  ".#####..#..####..#..#####.",
+  "###...........####.....###",
+  "###............##......###",
+  ".#####....#....#....#####.",
+  "....##....#...##....##....",
+  "....##....#######...##....",
+  "...##.......#####....##...",
+  "..###.........##.....###..",
+  "..##.####........####.##..",
+  "..#####.#...##...#.#####..",
+  "..##....#..####..#....##..",
+  "........#..####..#........",
+  "........#.##..##.#........",
+  "........###....###........",
+  "........##......##........",
+];
+const SUN_CROP = { from: 110, size: 860 }; // the part of the 1080 drawing the bitmap covers
+
+/** Silly sun drawn as chunky pixels, centered on (cx, cy), size units wide. */
+function PixelSun({ cx, cy, size, fill, className }: { cx: number; cy: number; size: number; fill: string; className?: string }) {
+  const n = SUN_PIXELS.length;
+  const cell = size / n;
+  const x0 = cx - size / 2;
+  const y0 = cy - size / 2;
+  // One path for all the blocks, so there are no hairline seams between them.
+  let d = "";
+  SUN_PIXELS.forEach((row, y) => {
+    [...row].forEach((c, x) => {
+      if (c === "#") d += `M${x0 + x * cell} ${y0 + y * cell}h${cell}v${cell}h${-cell}z`;
+    });
+  });
+  return <path className={className} d={d} fill={fill} />;
+}
+
+/** Scale and offset that line the vector sun up exactly with PixelSun. */
+function sunTransform(cx: number, cy: number, size: number) {
+  const k = size / SUN_CROP.size;
+  return { k, transform: `translate(${cx} ${cy}) scale(${k}) translate(-540 -540)` };
 }
 
 type Q = (selector: string) => Element[];
