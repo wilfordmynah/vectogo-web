@@ -21,6 +21,19 @@ const VARS = [
   "ADMIN_EMAILS",
 ];
 
+/** Which kind of Supabase key this is, without revealing it. */
+function keyRole(key: string): string {
+  if (key.startsWith("sb_secret_")) return "service_role";
+  if (key.startsWith("sb_publishable_")) return "anon";
+  try {
+    const payload = key.split(".")[1];
+    const json = JSON.parse(Buffer.from(payload.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8"));
+    return typeof json.role === "string" ? json.role : "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
 async function run(): Promise<Check[]> {
   const checks: Check[] = [];
   for (const name of VARS) {
@@ -42,6 +55,19 @@ async function run(): Promise<Check[]> {
   if (service && anon && service === anon) {
     checks.push({ name: "Supabase keys", ok: false, note: "the anon key and service_role key are the same: the service_role one is the secret key" });
   }
+  const serviceRole = service ? keyRole(service) : "";
+  if (service) {
+    const right = serviceRole === "service_role";
+    checks.push({
+      name: "Service role key",
+      ok: right,
+      note: right
+        ? "it's the secret service_role key"
+        : serviceRole === "anon"
+          ? "this is the public anon key. In Supabase → Project Settings → API Keys, copy the service_role (secret) key instead."
+          : "can't tell what kind of key this is. Copy the service_role (secret) key from Supabase → Project Settings → API Keys.",
+    });
+  }
   if (url && service) {
     try {
       const db = createClient(url, service, { auth: { persistSession: false } });
@@ -49,7 +75,15 @@ async function run(): Promise<Check[]> {
       checks.push({
         name: "Supabase tables",
         ok: !tableErr,
-        note: tableErr ? `can't read orders: ${tableErr.message}. Re-run supabase/migrations/0001_orders.sql in the SQL Editor.` : "orders table found",
+        note: !tableErr
+          ? "orders table found, and the site can reach it"
+          : /permission denied/i.test(tableErr.message) && serviceRole === "service_role"
+            ? "the tables exist but the site isn't allowed to use them yet. Run supabase/migrations/0002_grants.sql in the SQL Editor."
+            : /permission denied/i.test(tableErr.message)
+              ? `${tableErr.message}. Fix the service role key above first.`
+              : /does not exist|schema cache/i.test(tableErr.message)
+                ? "the orders table isn't there. Run supabase/migrations/0001_orders.sql, then 0002_grants.sql, in the SQL Editor."
+                : `can't read orders: ${tableErr.message}`,
       });
       const { data: buckets, error: bucketErr } = await db.storage.listBuckets();
       const have = new Set((buckets ?? []).map((b) => b.id));

@@ -31,6 +31,7 @@ The homepage works without any keys. The order form, accounts and admin need Sup
 
 1. At [supabase.com](https://supabase.com), create a project called `vectogo`.
 2. **SQL Editor** → New query → paste all of `supabase/migrations/0001_orders.sql` → Run. This creates the tables, the security rules and the three private file buckets.
+   Then do the same with `supabase/migrations/0002_grants.sql`, which lets the site use those tables (newer Supabase projects need this).
 3. **Project Settings → API**: copy the Project URL, the `anon` key and the `service_role` key into `.env.local`. Keep the service role key secret.
 4. **Authentication → URL Configuration**: set Site URL to `https://vectogo.com` and add these Redirect URLs:
    `http://localhost:3000/**`, `https://vectogo.com/**`, `https://*.workers.dev/**`
