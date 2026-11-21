@@ -15,7 +15,7 @@ const BLOBS = [
 
 const MAX_BLOCK = 38; // pixel size at the top of the page
 const SMOOTH_AT = 1; // fraction of the hero scrolled when it's fully smooth
-const COLOR_STEP = 28; // fewer colors while chunky, so each block stands out
+const COLOR_STEP = 16; // fewer colors while chunky, so each block stands out
 
 export default function HeroPixelBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -48,9 +48,12 @@ export default function HeroPixelBackground() {
 
     function draw() {
       frame = 0;
-      const host = canvas!.parentElement!;
-      const w = host.clientWidth;
-      const h = host.clientHeight;
+      // The canvas runs past the bottom of the hero into the next section;
+      // the sharpening is timed to the hero's own height.
+      const hero = canvas!.parentElement!;
+      const w = canvas!.clientWidth;
+      const h = canvas!.clientHeight;
+      const heroH = hero.clientHeight;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       if (canvas!.width !== Math.round(w * dpr) || canvas!.height !== Math.round(h * dpr)) {
         canvas!.width = Math.round(w * dpr);
@@ -58,7 +61,7 @@ export default function HeroPixelBackground() {
         paintSource(canvas!.width, canvas!.height);
       }
 
-      const progress = reduce ? 1 : Math.min(1, Math.max(0, window.scrollY / (h * SMOOTH_AT)));
+      const progress = reduce ? 1 : Math.min(1, Math.max(0, window.scrollY / (heroH * SMOOTH_AT)));
       // Ease in: stays chunky for a while, then sharpens quickly near the end.
       const eased = Math.pow(progress, 1.6);
       const block = Math.max(1, MAX_BLOCK * dpr * (1 - eased));
@@ -89,21 +92,6 @@ export default function HeroPixelBackground() {
       sctx.putImageData(img, 0, 0);
       ctx!.imageSmoothingEnabled = false;
       ctx!.drawImage(small, 0, 0, small.width * block, small.height * block);
-      // Faint grid lines between the blocks, like a zoomed-in image.
-      if (block > 10) {
-        ctx!.strokeStyle = `rgba(255,255,255,${0.55 * strength})`;
-        ctx!.lineWidth = Math.max(1, dpr * 1.5);
-        ctx!.beginPath();
-        for (let x = block; x < canvas!.width; x += block) {
-          ctx!.moveTo(Math.round(x) + 0.5, 0);
-          ctx!.lineTo(Math.round(x) + 0.5, canvas!.height);
-        }
-        for (let y = block; y < canvas!.height; y += block) {
-          ctx!.moveTo(0, Math.round(y) + 0.5);
-          ctx!.lineTo(canvas!.width, Math.round(y) + 0.5);
-        }
-        ctx!.stroke();
-      }
     }
 
     const schedule = () => {
@@ -119,5 +107,5 @@ export default function HeroPixelBackground() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} aria-hidden className="pointer-events-none absolute inset-0 -z-10 h-full w-full [mask-image:linear-gradient(to_bottom,black_75%,transparent)]" />;
+  return <canvas ref={canvasRef} aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[calc(100%+60vh)] w-full [mask-image:linear-gradient(to_bottom,black_70%,transparent)]" />;
 }

@@ -90,7 +90,7 @@ export default function Home() {
         </section>
 
         {/* Why vector: raster vs vector */}
-        <section id="why" data-bg={BG.why} className="px-5 py-32 sm:px-10">
+        <section id="why" data-bg={BG.why} className="relative px-5 py-32 sm:px-10">
           <div className="mx-auto max-w-6xl">
             <h2 data-rise className="font-display text-4xl font-black sm:text-6xl">
               Raster <span className="font-extralight">vs</span> <span className="text-purple">Vector</span>

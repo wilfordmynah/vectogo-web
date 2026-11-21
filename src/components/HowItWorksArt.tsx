@@ -14,6 +14,9 @@ const MAGENTA = "var(--vg-magenta)";
 const INK = "var(--vg-ink)";
 
 const SUN = "#7034db";
+// Pointer arrow (icon by iejank, from the Noun Project).
+const POINTER =
+  "M137 158l63 92c1,1 1,2 0,3l-29 21c-2,0 -3,0 -4,-1l-64 -91 -43 50c-2,1 -4,1 -5,-1l-55 -228c0,-2 2,-4 4,-3l195 130c2,1 1,4 -1,5l-61 23z";
 const SUN_RAYS =
   "M560.78,265.54l81.79-119.38c14.19-20.72,46.64-10.18,45.95,14.93l-4.01,144.66c-.49,17.69,16.95,30.35,33.62,24.42l136.34-48.51c23.66-8.42,43.72,19.19,28.4,39.09l-88.27,114.68c-10.79,14.02-4.13,34.52,12.84,39.52l138.82,40.89c24.09,7.1,24.09,41.22,0,48.32l-138.82,40.89c-16.97,5-23.63,25.5-12.84,39.52l88.27,114.68c15.32,19.9-4.74,47.51-28.4,39.09l-136.34-48.51c-16.67-5.93-34.11,6.73-33.62,24.42l4.01,144.66c.69,25.11-31.76,35.65-45.95,14.93l-81.79-119.38c-10.01-14.6-31.55-14.6-41.56,0l-81.79,119.38c-14.19,20.72-46.64,10.18-45.95-14.93l4.01-144.66c.49-17.69-16.95-30.35-33.62-24.42l-136.34,48.51c-23.66,8.42-43.72-19.19-28.4-39.09l88.27-114.68c10.79-14.02,4.13-34.52-12.84-39.52l-138.82-40.89c-24.09-7.1-24.09-41.22,0-48.32l138.82-40.89c16.97-5,23.63-25.5,12.84-39.52l-88.27-114.68c-15.32-19.9,4.74-47.51,28.4-39.09l136.34,48.51c16.67,5.93,34.11-6.73,33.62-24.42l-4.01-144.66c-.69-25.11,31.76-35.65,45.95-14.93l81.79,119.38C529.23,280.14,550.77,280.14,560.78,265.54Z";
 
@@ -96,7 +99,7 @@ export function SendItArt() {
   );
 }
 
-/** 2. We get to work: the pen traces part of the pixelated Silly as a smooth line. */
+/** 2. We get to work: the pointer traces part of the pixelated Silly as a smooth line. */
 export function GetToWorkArt() {
   const CX = 125, CY = 92, SIZE = 124;
   const { k, transform } = sunTransform(CX, CY, SIZE);
@@ -112,16 +115,17 @@ export function GetToWorkArt() {
       .set(q(".anchor"), { scale: 0, transformOrigin: "50% 50%" })
       .set(q(".handle"), { opacity: 0 })
       .set(q(".pixels"), { opacity: 0.5 })
-      .set(q(".pen"), { opacity: 1, x: 0, y: 0, rotation: 0 })
+      .set(q(".pen"), { opacity: 1, scale: 1 })
       .to(q(".pen"), {
-        motionPath: { path: rays, align: rays, alignOrigin: [0.1, 0.9], start: 0, end: TRACE },
+        motionPath: { path: rays, align: rays, alignOrigin: [0, 0], start: 0, end: TRACE },
         duration: 2.4,
         ease: "power1.inOut",
       })
       .to(rays, { strokeDashoffset: len * (1 - TRACE), duration: 2.4, ease: "power1.inOut" }, "<")
       .to(q(".anchor"), { scale: 1, duration: 0.25, stagger: 2.4 / (STOPS.length - 1), ease: "back.out(3)" }, "<")
       .to(q(".handle"), { opacity: 1, duration: 0.2, stagger: 2.4 / (STOPS.length - 1) }, "<0.1")
-      .to(q(".pen"), { y: "-=12", rotation: -15, duration: 0.2, yoyo: true, repeat: 1 })
+      // click!
+      .to(q(".pen"), { scale: 0.8, transformOrigin: "0% 0%", duration: 0.1, yoyo: true, repeat: 1 })
       .to({}, { duration: 1.4 })
       .to([rays, q(".anchor"), q(".handle")].flat(), { opacity: 0, duration: 0.3 })
       .set([rays, q(".anchor"), q(".handle")].flat(), { opacity: 1 });
@@ -135,7 +139,7 @@ export function GetToWorkArt() {
   });
 
   return (
-    <svg ref={ref} viewBox="20 24 210 136" className="h-44 w-full overflow-visible" role="img" aria-label="A pen tool tracing the pixelated sun as a smooth vector line">
+    <svg ref={ref} viewBox="20 24 210 136" className="h-44 w-full overflow-visible" role="img" aria-label="A pointer tracing the pixelated sun as a smooth vector line">
       <PixelSun cx={CX} cy={CY} size={SIZE} fill={MAGENTA} className="pixels" />
       <g transform={transform}>
         <path className="trace" d={SUN_RAYS} fill="none" stroke={SUN} strokeWidth={5 / k} strokeLinecap="round" strokeLinejoin="round" />
@@ -150,10 +154,9 @@ export function GetToWorkArt() {
           </g>
         ))}
       </g>
-      {/* pen nib */}
+      {/* Zane's pointer; its tip is the top-left corner */}
       <g className="pen">
-        <path d="M0 0 l10 -26 h12 l10 26 l-16 12 z" fill="#fff" stroke={INK} strokeWidth="3" strokeLinejoin="round" transform="translate(-16 -12) rotate(20 16 12)" />
-        <circle cx="0" cy="-4" r="3" fill={INK} transform="translate(0 -6)" />
+        <path d={POINTER} transform="scale(0.11) translate(0 -3)" fill={INK} stroke="#fff" strokeWidth={28} strokeLinejoin="round" paintOrder="stroke" />
       </g>
     </svg>
   );

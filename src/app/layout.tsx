@@ -21,7 +21,6 @@ export const metadata: Metadata = {
   title: "Vectogo | Still your logo, we just make it better",
   description:
     "Vectogo turns your fuzzy logo into crisp vector artwork, redrawn by a real designer. Flat rates, full refund through the first round.",
-  icons: { icon: "/brand/favicon.jpg" },
 };
 
 export default function RootLayout({
