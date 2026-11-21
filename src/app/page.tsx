@@ -14,18 +14,21 @@ const BG = {
 
 const packages = [
   {
+    id: "basic",
     name: "Just the basics",
     icon: "/brand/pkg-basics.png",
     bestFor: "Best for simple logos. Flat colors, clean shapes, a font we can find.",
     includes: ["1 review round", "JPG, PNG, EPS"],
   },
   {
+    id: "oh_yeah",
     name: "Oh yeah!",
     icon: "/brand/pkg-oh-yeah.png",
     bestFor: "Best for simple logos that need a few more file types and a second look.",
     includes: ["2 review rounds", "JPG, PNG, EPS, SVG, AI", "Full color, black and white versions"],
   },
   {
+    id: "all",
     name: "I want it all!",
     icon: "/brand/pkg-want-it-all.png",
     bestFor:
@@ -49,7 +52,8 @@ export default function Home() {
           <div className="flex items-center gap-5 text-sm font-medium">
             <a href="#why" className="hidden hover:text-purple sm:inline">Why vector?</a>
             <a href="#how" className="hidden hover:text-purple sm:inline">How it works</a>
-            <a href="#packages" className="vg-pill vg-pill--solid !py-2 !px-4">Get started</a>
+            <a href="/account" className="hidden hover:text-purple sm:inline">Sign in</a>
+            <a href="/order" className="vg-pill vg-pill--solid !py-2 !px-4">Get started</a>
           </div>
         </nav>
       </header>
@@ -205,8 +209,7 @@ export default function Home() {
                       <li key={item}>✓ {item}</li>
                     ))}
                   </ul>
-                  {/* Pricing and checkout come in phase 2 */}
-                  <a href="#contact" className="vg-pill mt-6 justify-center">Choose {p.name}</a>
+                  <a href={`/order?package=${p.id}`} className="vg-pill mt-6 justify-center">Choose {p.name}</a>
                 </article>
               ))}
             </div>
