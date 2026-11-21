@@ -13,8 +13,9 @@ const BLOBS = [
   { x: 0.7, y: 0.75, r: 0.35, color: "205,184,255" }, // lavender
 ];
 
-const MAX_BLOCK = 72; // pixel size at the top of the page
-const SMOOTH_AT = 0.75; // fraction of the hero scrolled when it's fully smooth
+const MAX_BLOCK = 150; // pixel size at the top of the page
+const SMOOTH_AT = 1; // fraction of the hero scrolled when it's fully smooth
+const COLOR_STEP = 28; // fewer colors while chunky, so each block stands out
 
 export default function HeroPixelBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -58,8 +59,8 @@ export default function HeroPixelBackground() {
       }
 
       const progress = reduce ? 1 : Math.min(1, Math.max(0, window.scrollY / (h * SMOOTH_AT)));
-      // Ease out so it sharpens quickly at first, then settles.
-      const eased = 1 - Math.pow(1 - progress, 2);
+      // Ease in: stays chunky for a while, then sharpens quickly near the end.
+      const eased = Math.pow(progress, 1.6);
       const block = Math.max(1, MAX_BLOCK * dpr * (1 - eased));
 
       if (block <= 1.5) {
@@ -73,8 +74,36 @@ export default function HeroPixelBackground() {
       const sctx = small.getContext("2d")!;
       sctx.imageSmoothingEnabled = true;
       sctx.drawImage(source, 0, 0, small.width, small.height);
+      // Snap colors to steps and lift saturation, so neighbouring blocks differ.
+      const strength = 1 - eased;
+      const img = sctx.getImageData(0, 0, small.width, small.height);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const avg = (d[i] + d[i + 1] + d[i + 2]) / 3;
+        for (let c = 0; c < 3; c++) {
+          const boosted = d[i + c] + (d[i + c] - avg) * 0.9 * strength;
+          const snapped = Math.round(boosted / COLOR_STEP) * COLOR_STEP;
+          d[i + c] = Math.max(0, Math.min(255, boosted + (snapped - boosted) * strength));
+        }
+      }
+      sctx.putImageData(img, 0, 0);
       ctx!.imageSmoothingEnabled = false;
       ctx!.drawImage(small, 0, 0, small.width * block, small.height * block);
+      // Faint grid lines between the blocks, like a zoomed-in image.
+      if (block > 10) {
+        ctx!.strokeStyle = `rgba(255,255,255,${0.55 * strength})`;
+        ctx!.lineWidth = Math.max(1, dpr * 1.5);
+        ctx!.beginPath();
+        for (let x = block; x < canvas!.width; x += block) {
+          ctx!.moveTo(Math.round(x) + 0.5, 0);
+          ctx!.lineTo(Math.round(x) + 0.5, canvas!.height);
+        }
+        for (let y = block; y < canvas!.height; y += block) {
+          ctx!.moveTo(0, Math.round(y) + 0.5);
+          ctx!.lineTo(canvas!.width, Math.round(y) + 0.5);
+        }
+        ctx!.stroke();
+      }
     }
 
     const schedule = () => {

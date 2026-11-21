@@ -13,7 +13,6 @@ export type Package = {
   formats: string[];
   extras: string[];
   bestFor: string;
-  icon: string;
   rank: number;
 };
 
@@ -26,7 +25,6 @@ export const PACKAGES: Record<PackageId, Package> = {
     formats: ["JPG", "PNG", "EPS"],
     extras: [],
     bestFor: "Best for simple logos. Flat colors, clean shapes, a font we can find.",
-    icon: "/brand/pkg-basics.png",
     rank: 1,
   },
   oh_yeah: {
@@ -37,7 +35,6 @@ export const PACKAGES: Record<PackageId, Package> = {
     formats: ["JPG", "PNG", "EPS", "SVG", "AI"],
     extras: ["Full color, black and white/reversed versions"],
     bestFor: "Best for simple logos that need every file type and a second look.",
-    icon: "/brand/pkg-oh-yeah.png",
     rank: 2,
   },
   all: {
@@ -48,7 +45,6 @@ export const PACKAGES: Record<PackageId, Package> = {
     formats: ["JPG", "PNG", "EPS", "SVG", "AI"],
     extras: ["Full color, black and white/reversed versions", "Brand sheet: version names, colors and a usage guide"],
     bestFor: "Best for complex logos, and anyone who wants the works.",
-    icon: "/brand/pkg-want-it-all.png",
     rank: 3,
   },
 };

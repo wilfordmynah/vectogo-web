@@ -3,6 +3,8 @@ import HeroFace from "@/components/HeroFace";
 import ScrollEffects from "@/components/ScrollEffects";
 import HeroPixelBackground from "@/components/HeroPixelBackground";
 import { SendItArt, GetToWorkArt, GoodToGoArt } from "@/components/HowItWorksArt";
+import FileTypeIcons from "@/components/FileTypeIcons";
+import { PACKAGES } from "@/lib/config";
 
 // Page background colors per section. The page drifts between these as you
 // scroll, so there are no hard-edged blocks.
@@ -18,21 +20,18 @@ const packages = [
   {
     id: "basic",
     name: "Just the basics",
-    icon: "/brand/pkg-basics.png",
     bestFor: "Best for simple logos. Flat colors, clean shapes, a font we can find.",
     includes: ["1 review round", "JPG, PNG, EPS"],
   },
   {
     id: "oh_yeah",
     name: "Oh yeah!",
-    icon: "/brand/pkg-oh-yeah.png",
     bestFor: "Best for simple logos that need a few more file types and a second look.",
     includes: ["2 review rounds", "JPG, PNG, EPS, SVG, AI", "Full color, black and white versions"],
   },
   {
     id: "all",
     name: "I want it all!",
-    icon: "/brand/pkg-want-it-all.png",
     bestFor:
       "Best for complex logos, and anyone who wants the works. Gradients, shading, custom lettering? This is your package.",
     includes: ["Unlimited review rounds", "Every file type and color version", "A brand sheet: versions, colors, usage"],
@@ -178,7 +177,7 @@ export default function Home() {
                   data-rise
                   className={`vg-card flex flex-col p-7 text-ink ${p.featured ? "ring-4 ring-magenta/60" : ""}`}
                 >
-                  <Image src={p.icon} alt="" width={64} height={64} className="h-16 w-16 object-contain" />
+                  <FileTypeIcons formats={PACKAGES[p.id as keyof typeof PACKAGES].formats} brandSheet={p.id === "all"} />
                   <h3 className="mt-5 font-display text-3xl font-black">{p.name}</h3>
                   <p className="mt-3 flex-1">{p.bestFor}</p>
                   <ul className="mt-5 space-y-1 text-sm font-medium">

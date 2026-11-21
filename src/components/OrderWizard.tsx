@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState, useTransition } from "react";
 import { PACKAGE_LIST, PACKAGES, money, isPackageId, type PackageId, TURNAROUND } from "@/lib/config";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { startCheckout, type Brief, type Draft } from "@/app/order/actions";
 import SignInForm from "@/components/SignInForm";
+import FileTypeIcons from "@/components/FileTypeIcons";
 
 // The guided order form: package → upload → brief → review and pay.
 // Progress is kept in this browser, so a visitor can leave to open the
@@ -133,7 +133,7 @@ function PackageStep({ selected, onPick }: { selected: PackageId | null; onPick:
           onClick={() => onPick(p.id)}
           className={`vg-card flex flex-col p-6 text-left ${selected === p.id ? "ring-4 ring-magenta/60" : ""}`}
         >
-          <Image src={p.icon} alt="" width={56} height={56} className="h-14 w-14 object-contain" />
+          <FileTypeIcons formats={p.formats} brandSheet={p.id === "all"} />
           <span className="mt-4 font-display text-2xl font-black">{p.name}</span>
           <span className="mt-1 text-2xl font-bold text-purple">{money(p.priceCents)}</span>
           <span className="mt-3 flex-1 text-sm">{p.bestFor}</span>
