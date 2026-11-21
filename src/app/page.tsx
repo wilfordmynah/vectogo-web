@@ -1,6 +1,8 @@
 import Image from "next/image";
 import HeroFace from "@/components/HeroFace";
 import ScrollEffects from "@/components/ScrollEffects";
+import HeroPixelBackground from "@/components/HeroPixelBackground";
+import { SendItArt, GetToWorkArt, GoodToGoArt } from "@/components/HowItWorksArt";
 
 // Page background colors per section. The page drifts between these as you
 // scroll, so there are no hard-edged blocks.
@@ -61,12 +63,8 @@ export default function Home() {
       <main id="top" className="overflow-x-clip">
         {/* Hero */}
         <section data-bg={BG.hero} className="relative isolate min-h-[100svh] px-5 pt-32 sm:px-10">
-          {/* iridescent backdrop */}
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-            <div className="vg-blob left-[-10%] top-[5%] h-[45vmax] w-[45vmax] bg-pink" />
-            <div className="vg-blob right-[-15%] top-[20%] h-[40vmax] w-[40vmax] bg-mint [animation-delay:-6s]" />
-            <div className="vg-blob bottom-[-20%] left-[25%] h-[38vmax] w-[38vmax] bg-peach [animation-delay:-12s]" />
-          </div>
+          {/* pixelated backdrop that smooths out as you scroll */}
+          <HeroPixelBackground />
 
           <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
             <div data-rise>
@@ -90,16 +88,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* flowing ribbon that carries you into the next section */}
-          <svg aria-hidden viewBox="0 0 1440 200" preserveAspectRatio="none" className="absolute inset-x-0 -bottom-24 h-48 w-full">
-            <defs>
-              <linearGradient id="ribbon" x1="0" x2="1">
-                <stop offset="0" stopColor="var(--vg-purple)" />
-                <stop offset="1" stopColor="var(--vg-magenta)" />
-              </linearGradient>
-            </defs>
-            <path data-draw d="M-20 120 C 240 20, 480 200, 720 110 S 1200 20, 1460 130" fill="none" stroke="url(#ribbon)" strokeWidth="10" strokeLinecap="round" />
-          </svg>
         </section>
 
         {/* Why vector: raster vs vector */}
@@ -156,28 +144,17 @@ export default function Home() {
               How it works <span className="font-extralight">(it&apos;s easy)</span>
             </h2>
 
-            <div className="relative mt-16">
-              {/* hand-drawn magenta arrow, draws as you scroll */}
-              <svg aria-hidden viewBox="0 0 1000 120" preserveAspectRatio="none" className="absolute inset-x-0 top-6 hidden h-24 w-full md:block">
-                <path
-                  data-draw
-                  d="M60 70 C 180 10, 300 110, 420 60 S 640 0, 720 70 C 780 120, 860 40, 940 60 M915 40 L945 60 L912 80"
-                  fill="none"
-                  stroke="var(--vg-magenta)"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+            <div className="mt-16">
 
-              <ol className="relative grid gap-10 md:grid-cols-3">
+              <ol className="grid gap-8 md:grid-cols-3">
                 {[
                   ["Send it", "Pick a package, upload your best logo file and tell us what matters most."],
                   ["We get to work", "We reply within 24 hours, and your first proof follows 1 to 2 days later. Ask for changes or approve it."],
                   ["Good to go", "Download your crisp new files from your account, any time, ready for print, web and everything else."],
                 ].map(([title, body], i) => (
-                  <li key={title} data-rise className="pt-28">
-                    <span className="font-display text-6xl font-black text-purple">{i + 1}</span>
+                  <li key={title} data-rise className="vg-card p-6">
+                    {[<SendItArt key="a" />, <GetToWorkArt key="b" />, <GoodToGoArt key="c" />][i]}
+                    <span className="mt-4 block font-display text-5xl font-black text-purple">{i + 1}</span>
                     <h3 className="mt-2 font-display text-2xl font-black">{title}</h3>
                     <p className="mt-2">{body}</p>
                   </li>
