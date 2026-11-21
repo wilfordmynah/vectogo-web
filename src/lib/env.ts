@@ -1,9 +1,14 @@
 // All settings come from environment variables (see .env.example).
 // Each one is read lazily so the marketing pages build without them.
 
+/** Trims stray spaces and quotes that sneak in when pasting keys into .env.local. */
+export function clean(v: string | undefined) {
+  return (v ?? "").trim().replace(/^["']|["']$/g, "").trim();
+}
+
 function need(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing environment variable ${name}. See .env.example.`);
+  const v = clean(process.env[name]);
+  if (!v) throw new Error(`Missing ${name} in .env.local (see .env.example), then restart npm run dev.`);
   return v;
 }
 

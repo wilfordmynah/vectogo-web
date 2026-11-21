@@ -38,6 +38,10 @@ The homepage works without any keys. The order form, accounts and admin need Sup
    `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email&next={{ .RedirectTo }}`
    so sign-in links work even when opened on a different device. (Optional, but recommended.)
 
+**Check your setup:** with `npm run dev` running, open http://localhost:3000/setup-check. It lists any missing or mistyped settings and checks the Supabase tables, file storage and Stripe key, without ever showing the keys. (Only works on your computer, not on the live site.)
+
+Your keys go in `.env.local` in the main project folder, next to `package.json`. The site doesn't read keys from `.dev.vars`. After changing `.env.local`, stop `npm run dev` with Ctrl+C and start it again.
+
 ### 3. Stripe (payments)
 
 1. In your Stripe dashboard, switch on **Test mode**.

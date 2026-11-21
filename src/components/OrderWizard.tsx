@@ -177,15 +177,16 @@ function UploadStep({
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ type: file.type, size: file.size }),
         });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error ?? "Upload failed.");
-        const { error: upErr } = await supabaseBrowser().storage.from("uploads").uploadToSignedUrl(json.path, json.token, file, {
+        const json = (await res.json().catch(() => null)) as { path?: string; token?: string; error?: string } | null;
+        if (!res.ok || !json?.path || !json.token) throw new Error(json?.error ?? `Upload isn't available right now (error ${res.status}).`);
+        const path = json.path;
+        const { error: upErr } = await supabaseBrowser().storage.from("uploads").uploadToSignedUrl(path, json.token, file, {
           contentType: file.type,
         });
-        if (upErr) throw new Error("Upload failed. Please try again.");
+        if (upErr) throw new Error(`Upload failed: ${upErr.message}`);
         const preview = file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined;
         const lowRes = preview ? await isLowRes(preview) : false;
-        setFiles((prev) => [...prev, { path: json.path, name: file.name, preview, lowRes }]);
+        setFiles((prev) => [...prev, { path, name: file.name, preview, lowRes }]);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed.");

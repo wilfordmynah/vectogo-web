@@ -24,7 +24,14 @@ export async function POST(request: NextRequest) {
   }
 
   const path = `drafts/${crypto.randomUUID()}.${ext}`;
-  const { data, error } = await supabaseAdmin().storage.from("uploads").createSignedUploadUrl(path);
-  if (error || !data) return NextResponse.json({ error: "Upload isn't available right now." }, { status: 500 });
-  return NextResponse.json({ path: data.path, token: data.token });
+  try {
+    const { data, error } = await supabaseAdmin().storage.from("uploads").createSignedUploadUrl(path);
+    if (error || !data) throw new Error(error?.message ?? "No upload link returned");
+    return NextResponse.json({ path: data.path, token: data.token });
+  } catch (err) {
+    // Always answer in JSON so the form can show a readable message.
+    console.error("Upload link failed:", err);
+    const detail = process.env.NODE_ENV !== "production" && err instanceof Error ? ` (${err.message})` : "";
+    return NextResponse.json({ error: `Upload isn't available right now.${detail}` }, { status: 500 });
+  }
 }
