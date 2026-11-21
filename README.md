@@ -72,6 +72,14 @@ No products need creating in Stripe: prices come from `src/lib/config.ts`. Custo
 
 Optional until launch: without a key, emails are printed in the terminal instead. At [resend.com](https://resend.com), add the domain `vectogo.com` and add its DNS records in Cloudflare (Resend uses a `send.vectogo.com` subdomain, so it doesn't clash with Zoho Mail). Put the API key in `RESEND_API_KEY`.
 
+**Sign-in emails through Resend too.** Supabase's built-in email only sends a few sign-in links an hour, so set this up before launch. Once your domain shows as verified in Resend, go to Supabase → **Authentication → Emails → SMTP Settings**, turn on **Enable custom SMTP**, and enter:
+- Sender email: `hello@vectogo.com`, sender name: `Vectogo`
+- Host `smtp.resend.com`, port `465`, username `resend`, password: your Resend API key
+
+Then in **Authentication → Rate Limits**, raise "emails sent per hour" (for example to 100).
+
+**Testing on your computer without email:** if a sign-in email can't be sent while you're running `npm run dev`, the sign-in box shows a **Sign in as this email** button that skips the email. It never appears on the live site.
+
 ### 6. Admin access
 
 Put your email in `ADMIN_EMAILS`. Sign in with it and an **Admin** link appears: that's the order queue.

@@ -34,6 +34,13 @@ export default function SignInForm({ next, cta = "Email me a sign-in link" }: { 
         {pending ? "Sending…" : cta}
       </button>
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state.devLink && (
+        <div className="rounded-2xl border-2 border-dashed border-purple p-4 text-sm">
+          <p className="font-bold">Testing on your computer?</p>
+          <p className="mt-1">Skip the email and sign in directly. This button only appears on your computer, never on the live site.</p>
+          <a href={state.devLink} className="vg-pill vg-pill--solid mt-3 justify-center">Sign in as this email</a>
+        </div>
+      )}
     </form>
   );
 }
