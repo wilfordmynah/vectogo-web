@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+/* Vectogo brand tokens. Change a color here and it changes everywhere. */
+:root {
+  --vg-purple: #6f07e5; /* primary purple, from the logo */
+  --vg-magenta: #c600d5; /* second voice: heart, arrows */
+  --vg-black: #000000;
+  --vg-white: #ffffff;
+  --vg-pink: #fcdef9; /* soft section background */
+  --vg-ink: #111014;
+  --vg-mint: #d9fbef;
+  --vg-peach: #ffe3d3;
+
+  /* Scroll-driven page background (animated by FlowBackground) */
+  --vg-page: var(--vg-white);
+}
+
+@theme inline {
+  --color-purple: var(--vg-purple);
+  --color-magenta: var(--vg-magenta);
+  --color-pink: var(--vg-pink);
+  --color-ink: var(--vg-ink);
+  --color-mint: var(--vg-mint);
+  --color-peach: var(--vg-peach);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--vg-page);
+  color: var(--vg-ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  transition: background-color 0.2s linear;
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+  letter-spacing: -0.035em;
+}
+
+/* Outlined pill button, carried over from the current site */
+.vg-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 2px solid currentColor;
+  border-radius: 9999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+.vg-pill:hover {
+  transform: translateY(-2px);
+}
+.vg-pill--solid {
+  background: var(--vg-purple);
+  border-color: var(--vg-purple);
+  color: var(--vg-white);
+}
+
+/* White card with the offset purple shadow */
+.vg-card {
+  background: var(--vg-white);
+  border: 2px solid var(--vg-black);
+  border-radius: 1.5rem;
+  box-shadow: 8px 8px 0 var(--vg-purple);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.vg-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 14px 14px 0 var(--vg-purple);
+}
+
+/* Slow iridescent blobs behind the hero */
+@keyframes vg-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(6%, -4%) scale(1.08); }
+  66% { transform: translate(-5%, 5%) scale(0.95); }
+}
+.vg-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.7;
+  animation: vg-drift 18s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .vg-blob { animation: none; }
+  .vg-card, .vg-pill { transition: none; }
+}
