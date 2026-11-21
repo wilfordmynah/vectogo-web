@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 221.3 293.5">
+  
+  <defs>
+    <style>
+      .st0 {
+        fill: #4c17bf;
+      }
+
+      .st1 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <polygon class="st1" points="45.9 38.4 48.1 35.7 57.9 30.5 62 35.7 186.9 160.6 193.8 181.4 140.1 183.5 145.3 202.3 159.1 230 164.5 248.1 159.1 257.8 145.3 264 131.4 257.8 117.5 230 103.6 202.3 96.7 197.5 89.7 202.3 75.8 216.1 62 230 43.5 237 45.9 38.4"/>
+  <rect class="st0" x="48.1" y="21.8" width="13.9" height="13.9"/>
+  <rect class="st0" x="62" y="35.7" width="13.9" height="13.9"/>
+  <rect class="st0" x="75.8" y="49.6" width="13.9" height="13.9"/>
+  <rect class="st0" x="89.7" y="63.5" width="13.9" height="13.9"/>
+  <rect class="st0" x="103.6" y="77.3" width="13.9" height="13.9"/>
+  <rect class="st0" x="117.5" y="91.2" width="13.9" height="13.9"/>
+  <rect class="st0" x="131.4" y="105.1" width="13.9" height="13.9"/>
+  <rect class="st0" x="131.4" y="188.4" width="13.9" height="13.9"/>
+  <rect class="st0" x="145.3" y="202.3" width="13.9" height="13.9"/>
+  <rect class="st0" x="145.3" y="216.1" width="13.9" height="13.9"/>
+  <rect class="st0" x="159.1" y="230" width="13.9" height="13.9"/>
+  <rect class="st0" x="159.1" y="243.9" width="13.9" height="13.9"/>
+  <rect class="st0" x="145.3" y="257.8" width="13.9" height="13.9"/>
+  <rect class="st0" x="131.4" y="257.8" width="13.9" height="13.9"/>
+  <rect class="st0" x="117.5" y="243.9" width="13.9" height="13.9"/>
+  <rect class="st0" x="117.5" y="230" width="13.9" height="13.9"/>
+  <rect class="st0" x="103.6" y="216.1" width="13.9" height="13.9"/>
+  <rect class="st0" x="103.6" y="202.3" width="13.9" height="13.9"/>
+  <rect class="st0" x="89.7" y="188.4" width="13.9" height="13.9"/>
+  <rect class="st0" x="75.8" y="202.3" width="13.9" height="13.9"/>
+  <rect class="st0" x="62" y="216.1" width="13.9" height="13.9"/>
+  <rect class="st0" x="48.1" y="230" width="13.9" height="13.9"/>
+  <rect class="st0" x="34.2" y="35.7" width="13.9" height="208.2"/>
+  <rect class="st0" x="145.3" y="119" width="13.9" height="13.9"/>
+  <rect class="st0" x="159.1" y="132.9" width="13.9" height="13.9"/>
+  <rect class="st0" x="173" y="146.7" width="13.9" height="13.9"/>
+  <rect class="st0" x="186.9" y="160.6" width="13.9" height="13.9"/>
+  <rect class="st0" x="131.4" y="174.5" width="69.4" height="13.9"/>
+</svg>

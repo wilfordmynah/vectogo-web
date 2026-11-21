@@ -14,9 +14,6 @@ const MAGENTA = "var(--vg-magenta)";
 const INK = "var(--vg-ink)";
 
 const SUN = "#7034db";
-// Pointer arrow (icon by iejank, from the Noun Project).
-const POINTER =
-  "M137 158l63 92c1,1 1,2 0,3l-29 21c-2,0 -3,0 -4,-1l-64 -91 -43 50c-2,1 -4,1 -5,-1l-55 -228c0,-2 2,-4 4,-3l195 130c2,1 1,4 -1,5l-61 23z";
 const SUN_RAYS =
   "M560.78,265.54l81.79-119.38c14.19-20.72,46.64-10.18,45.95,14.93l-4.01,144.66c-.49,17.69,16.95,30.35,33.62,24.42l136.34-48.51c23.66-8.42,43.72,19.19,28.4,39.09l-88.27,114.68c-10.79,14.02-4.13,34.52,12.84,39.52l138.82,40.89c24.09,7.1,24.09,41.22,0,48.32l-138.82,40.89c-16.97,5-23.63,25.5-12.84,39.52l88.27,114.68c15.32,19.9-4.74,47.51-28.4,39.09l-136.34-48.51c-16.67-5.93-34.11,6.73-33.62,24.42l4.01,144.66c.69,25.11-31.76,35.65-45.95,14.93l-81.79-119.38c-10.01-14.6-31.55-14.6-41.56,0l-81.79,119.38c-14.19,20.72-46.64,10.18-45.95-14.93l4.01-144.66c.49-17.69-16.95-30.35-33.62-24.42l-136.34,48.51c-23.66,8.42-43.72-19.19-28.4-39.09l88.27-114.68c10.79-14.02,4.13-34.52-12.84-39.52l-138.82-40.89c-24.09-7.1-24.09-41.22,0-48.32l138.82-40.89c16.97-5,23.63-25.5,12.84-39.52l-88.27-114.68c-15.32-19.9,4.74-47.51,28.4-39.09l136.34,48.51c16.67,5.93,34.11-6.73,33.62-24.42l-4.01-144.66c-.69-25.11,31.76-35.65,45.95-14.93l81.79,119.38C529.23,280.14,550.77,280.14,560.78,265.54Z";
 
@@ -42,58 +39,95 @@ function SillySun({ cx, cy, size, className = "sun" }: { cx: number; cy: number;
   );
 }
 
-/** 1. Send it: a pixelated Silly sun file hops into the upload tray. */
+// Zane's pixel cursor. Its tip sits this far into the image (as a fraction of its size).
+const CURSOR = { src: "/brand/cursor.svg", w: 221.3, h: 293.5, tip: [48.1 / 221.3, 21.8 / 293.5] as [number, number] };
+
+/** The pixel cursor, drawn with its tip at (0, 0). */
+function Cursor({ height = 30 }: { height?: number }) {
+  const k = height / CURSOR.h;
+  return <image href={CURSOR.src} x={-48.1 * k} y={-21.8 * k} width={CURSOR.w * k} height={height} />;
+}
+
+/** 1. Send it: the cursor clicks Upload and the pixelated Silly file blasts off like a rocket. */
 export function SendItArt() {
+  const BTN = { x: 30, y: 98, w: 84, h: 30 };
   const ref = useScene((q) => {
-    const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.6 });
-    tl.set(q(".file"), { x: 0, y: 0, scale: 1, rotation: 0, opacity: 1, transformOrigin: "50% 50%" })
+    const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.4 });
+    tl.set(q(".rocket"), { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, transformOrigin: "50% 100%" })
+      .set(q(".flame"), { scaleY: 0, opacity: 0, transformOrigin: "50% 0%" })
+      .set(q(".puff"), { scale: 0, opacity: 0, x: 0, y: 0, transformOrigin: "50% 50%" })
+      .set(q(".btn"), { scale: 1, transformOrigin: "50% 50%" })
+      .set(q(".pen"), { x: 20, y: 60, opacity: 1, scale: 1, transformOrigin: "0% 0%" })
       .set(q(".check"), { scale: 0, transformOrigin: "50% 50%" })
-      .set(q(".speed"), { opacity: 0 })
-      // nervous wiggle
-      .to(q(".file"), { rotation: -6, duration: 0.12, repeat: 5, yoyo: true, ease: "sine.inOut" })
-      // crouch, then jump
-      .to(q(".file"), { scaleY: 0.85, y: 6, duration: 0.18, ease: "power2.in" })
-      .to(q(".speed"), { opacity: 1, duration: 0.1 })
-      .to(q(".file"), {
-        motionPath: { path: q(".arc")[0] as SVGPathElement, align: q(".arc")[0] as SVGPathElement, alignOrigin: [0.5, 0.5] },
-        scale: 0.35,
-        rotation: 200,
-        duration: 0.75,
-        ease: "power1.inOut",
+      // cursor glides to the button
+      .to(q(".pen"), { x: BTN.x + BTN.w * 0.62, y: BTN.y + BTN.h * 0.55, duration: 0.8, ease: "power2.inOut" })
+      // click!
+      .to(q(".pen"), { scale: 0.82, duration: 0.08, yoyo: true, repeat: 1 })
+      .to(q(".btn"), { scale: 0.92, duration: 0.08, yoyo: true, repeat: 1 }, "<")
+      // engines on: rumble and flicker
+      .to(q(".flame"), { scaleY: 0.5, opacity: 1, duration: 0.15 })
+      .to(q(".rocket"), { x: "+=1.5", duration: 0.04, repeat: 9, yoyo: true, ease: "none" }, "<")
+      .to(q(".flame"), { scaleY: 0.8, duration: 0.07, repeat: 5, yoyo: true, ease: "none" }, "<")
+      .to(q(".rocket"), { scaleY: 0.9, scaleX: 1.05, duration: 0.15, ease: "power2.in" }, "-=0.15")
+      // liftoff
+      .to(q(".puff"), {
+        scale: (i) => [1.2, 1.5, 1.1, 1.4][i],
+        x: (i) => [-22, -8, 10, 24][i],
+        y: (i) => [2, 6, 6, 2][i],
+        opacity: 0.9,
+        duration: 0.25,
+        ease: "power2.out",
       })
-      .to(q(".speed"), { opacity: 0, duration: 0.2 }, "<0.3")
-      .to(q(".file"), { opacity: 0, duration: 0.1 })
-      // tray gulps
-      .to(q(".tray"), { scaleY: 0.8, scaleX: 1.12, transformOrigin: "50% 100%", duration: 0.12, yoyo: true, repeat: 1 })
-      // tray gives a thumbs up
-      .to(q(".check"), { scale: 1, duration: 0.4, ease: "back.out(3)" })
-      .to({}, { duration: 1 });
+      .to(q(".flame"), { scaleY: 1.4, duration: 0.15 }, "<")
+      .to(q(".rocket"), { scaleY: 1.12, scaleX: 0.92, duration: 0.1 }, "<")
+      .to(q(".rocket"), { y: -190, rotation: 4, duration: 0.8, ease: "power3.in" }, "<0.05")
+      .to(q(".rocket"), { opacity: 0, duration: 0.2 }, "-=0.2")
+      .to(q(".puff"), { opacity: 0, scale: "+=0.6", y: "-=4", duration: 0.7, ease: "power1.out" }, "<-0.3")
+      .to(q(".check"), { scale: 1, duration: 0.4, ease: "back.out(3)" }, "<0.2")
+      .to(q(".pen"), { x: "-=8", y: "+=14", duration: 0.5, ease: "power1.out" }, "<")
+      .to({}, { duration: 1.1 })
+      // a fresh file drops back in for the next loop
+      .set(q(".rocket"), { y: -30, rotation: 0, scaleX: 1, scaleY: 1 })
+      .set(q(".flame"), { scaleY: 0, opacity: 0 })
+      .to(q(".rocket"), { y: 0, opacity: 1, duration: 0.45, ease: "bounce.out" })
+      .to(q(".check"), { scale: 0, duration: 0.2 }, "<");
     return tl;
-  }, (q) => gsap.set(q(".check"), { scale: 1, transformOrigin: "50% 50%" }));
+  }, (q) => {
+    gsap.set(q(".pen"), { x: BTN.x + BTN.w * 0.62, y: BTN.y + BTN.h * 0.55 });
+    gsap.set(q(".flame"), { opacity: 0 });
+    gsap.set(q(".puff"), { opacity: 0 });
+    gsap.set(q(".check"), { scale: 1, transformOrigin: "50% 50%" });
+  });
 
   return (
-    <svg ref={ref} viewBox="20 40 210 120" className="h-44 w-full overflow-visible" role="img" aria-label="A pixelated sun logo jumping into the upload tray">
-      <path className="arc" d="M62 120 C 80 20, 160 10, 186 62" fill="none" stroke="none" />
-      {/* speed lines */}
-      <g className="speed" stroke={MAGENTA} strokeWidth="4" strokeLinecap="round" opacity="0">
-        <path d="M40 96 l-16 4" />
-        <path d="M42 112 l-20 2" />
-        <path d="M44 128 l-14 0" />
+    <svg ref={ref} viewBox="20 40 210 120" className="h-44 w-full overflow-visible" role="img" aria-label="A cursor clicks Upload and a pixelated sun logo file blasts off like a rocket">
+      {/* smoke puffs at the launch pad */}
+      {[0, 1, 2, 3].map((i) => (
+        <circle key={i} className="puff" cx="172" cy="148" r="9" fill="#e9e3f5" />
+      ))}
+      {/* the rocket: Zane's pixel Silly file, with pixel flames underneath */}
+      <g className="rocket">
+        <g className="flame" shapeRendering="crispEdges">
+          <rect x="154" y="141" width="36" height="8" fill="#FFD23F" />
+          <rect x="158" y="149" width="28" height="8" fill="#FF9F1C" />
+          <rect x="162" y="157" width="20" height="8" fill="#FF5A1F" />
+          <rect x="166" y="165" width="12" height="8" fill={MAGENTA} />
+          <rect x="170" y="173" width="4" height="6" fill={MAGENTA} />
+        </g>
+        <image href="/brand/silly-sun-pixel-file.svg" x="138" y="58" width="68" height="85" />
       </g>
-      {/* upload tray */}
-      <g className="tray">
-        <rect x="150" y="62" width="76" height="52" rx="14" fill="#fff" stroke={INK} strokeWidth="4" />
-        <path d="M188 100 V76 M178 86 l10 -10 l10 10" stroke={PURPLE} strokeWidth="5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      {/* the upload button */}
+      <g className="btn">
+        <rect x={BTN.x} y={BTN.y} width={BTN.w} height={BTN.h} rx={BTN.h / 2} fill={PURPLE} stroke={INK} strokeWidth="3" />
+        <path d={`M${BTN.x + 20} ${BTN.y + 21} V${BTN.y + 9} M${BTN.x + 14} ${BTN.y + 14} l6 -6 l6 6`} stroke="#fff" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <text x={BTN.x + 54} y={BTN.y + 20} textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff">Upload</text>
       </g>
       <g className="check">
-        <circle cx="216" cy="56" r="14" fill={MAGENTA} />
-        <path d="M209 56 l5 5 l9 -10" stroke="#fff" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx={BTN.x + BTN.w - 4} cy={BTN.y - 2} r="11" fill={MAGENTA} />
+        <path d={`M${BTN.x + BTN.w - 9.5} ${BTN.y - 2} l4 4 l7 -8`} stroke="#fff" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       </g>
-      {/* the file: a blurry, pixelly Silly */}
-      <g className="file">
-        <path d="M38 82 h34 l14 14 v46 a6 6 0 0 1 -6 6 h-42 a6 6 0 0 1 -6 -6 v-54 a6 6 0 0 1 6 -6 z" fill="#fff" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <path d="M72 82 v14 h14" fill="none" stroke={INK} strokeWidth="4" strokeLinejoin="round" />
-        <PixelSun cx={59} cy={118} size={40} fill={SUN} />
+      <g className="pen">
+        <Cursor height={30} />
       </g>
     </svg>
   );
@@ -117,7 +151,7 @@ export function GetToWorkArt() {
       .set(q(".pixels"), { opacity: 0.5 })
       .set(q(".pen"), { opacity: 1, scale: 1 })
       .to(q(".pen"), {
-        motionPath: { path: rays, align: rays, alignOrigin: [0, 0], start: 0, end: TRACE },
+        motionPath: { path: rays, align: rays, alignOrigin: CURSOR.tip, start: 0, end: TRACE },
         duration: 2.4,
         ease: "power1.inOut",
       })
@@ -154,9 +188,9 @@ export function GetToWorkArt() {
           </g>
         ))}
       </g>
-      {/* Zane's pointer; its tip is the top-left corner */}
+      {/* Zane's pixel cursor */}
       <g className="pen">
-        <path d={POINTER} transform="scale(0.11) translate(0 -3)" fill={INK} stroke="#fff" strokeWidth={28} strokeLinejoin="round" paintOrder="stroke" />
+        <Cursor height={30} />
       </g>
     </svg>
   );
