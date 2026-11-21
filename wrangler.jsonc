@@ -1,0 +1,23 @@
+// Cloudflare Workers settings for vectogo.com (built with OpenNext).
+// Secrets (Supabase, Stripe, Resend keys) are NOT kept here: add them in the
+// Cloudflare dashboard under Workers & Pages → vectogo-web → Settings →
+// Variables and Secrets. See README.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vectogo-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      // Self-reference, required by OpenNext. Must match "name" above.
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "vectogo-web"
+    }
+  ],
+  "observability": { "enabled": true }
+}
