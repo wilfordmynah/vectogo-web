@@ -18,7 +18,7 @@ export default function SignInForm({ next, cta = "Email me a sign-in link" }: { 
   }
 
   return (
-    <form action={action} className="flex flex-col gap-3 sm:flex-row">
+    <form action={action} className="flex flex-col gap-3">
       <input type="hidden" name="next" value={next} />
       <label className="sr-only" htmlFor="email">Email</label>
       <input
@@ -28,12 +28,12 @@ export default function SignInForm({ next, cta = "Email me a sign-in link" }: { 
         required
         autoComplete="email"
         placeholder="you@yourbusiness.com"
-        className="min-w-0 flex-1 rounded-full border-2 border-black px-5 py-3 outline-none focus:border-purple"
+        className="w-full rounded-full border-2 border-black px-5 py-3 outline-none focus:border-purple"
       />
       <button disabled={pending} className="vg-pill vg-pill--solid justify-center disabled:opacity-60">
         {pending ? "Sending…" : cta}
       </button>
-      {state.error && <p className="text-sm text-red-600 sm:basis-full">{state.error}</p>}
+      {state.error && <p className="text-sm text-red-600">{state.error}</p>}
     </form>
   );
 }

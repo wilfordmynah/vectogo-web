@@ -3,11 +3,18 @@ import Link from "next/link";
 import PortalShell from "@/components/PortalShell";
 import ClearDraft from "@/components/ClearDraft";
 import { TURNAROUND } from "@/lib/config";
+import { syncPendingPayments } from "@/lib/payments";
+import { currentUser } from "@/lib/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Thanks! | Vectogo" };
 
 export default async function ConfirmedPage({ searchParams }: { searchParams: Promise<{ order?: string }> }) {
   const { order } = await searchParams;
+  // Confirm the payment with Stripe now, so the order is in their account straight away.
+  const user = await currentUser();
+  if (user) await syncPendingPayments(user.id);
   return (
     <PortalShell>
       <ClearDraft />

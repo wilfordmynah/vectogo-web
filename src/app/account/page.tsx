@@ -3,12 +3,15 @@ import PortalShell from "@/components/PortalShell";
 import StatusBadge from "@/components/StatusBadge";
 import { PACKAGES } from "@/lib/config";
 import type { OrderRow } from "@/lib/orders";
-import { supabaseForUser } from "@/lib/supabase/server";
+import { currentUser, supabaseForUser } from "@/lib/supabase/server";
+import { syncPendingPayments } from "@/lib/payments";
 
 export const metadata = { title: "My orders | Vectogo" };
 export const dynamic = "force-dynamic";
 
 export default async function AccountPage() {
+  const user = await currentUser();
+  if (user) await syncPendingPayments(user.id);
   const supabase = await supabaseForUser();
   const { data } = await supabase
     .from("orders")

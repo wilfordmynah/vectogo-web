@@ -2,12 +2,15 @@ import Link from "next/link";
 import PortalShell from "@/components/PortalShell";
 import { money } from "@/lib/config";
 import type { PaymentRow } from "@/lib/orders";
-import { supabaseForUser } from "@/lib/supabase/server";
+import { currentUser, supabaseForUser } from "@/lib/supabase/server";
+import { syncPendingPayments } from "@/lib/payments";
 
 export const metadata = { title: "Billing | Vectogo" };
 export const dynamic = "force-dynamic";
 
 export default async function BillingPage() {
+  const user = await currentUser();
+  if (user) await syncPendingPayments(user.id);
   const supabase = await supabaseForUser();
   const { data } = await supabase
     .from("payments")
@@ -19,7 +22,7 @@ export default async function BillingPage() {
   return (
     <PortalShell>
       <h1 className="font-display text-4xl font-black">Billing</h1>
-      <p className="mt-2">Every payment and refund, with receipts and invoices. Cards are saved securely by Stripe at checkout.</p>
+      <p className="mt-2">Every payment and refund, with Stripe receipts. If you choose to save a card at checkout, Stripe keeps it safe.</p>
       {payments.length === 0 ? (
         <p className="mt-8 opacity-70">No payments yet.</p>
       ) : (

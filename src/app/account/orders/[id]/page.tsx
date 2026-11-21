@@ -5,6 +5,8 @@ import OrderCustomerActions from "@/components/OrderCustomerActions";
 import Messages from "@/components/Messages";
 import { PACKAGES, money, upgradeOptions, ONE_MORE_THING } from "@/lib/config";
 import { forRules, getCustomerOrder, signedUrls } from "@/lib/orders";
+import { syncPendingPayments } from "@/lib/payments";
+import { currentUser } from "@/lib/supabase/server";
 import {
   STATUS_HELP,
   TIMELINE,
@@ -28,6 +30,8 @@ export default async function OrderPage({
 }) {
   const { id } = await params;
   const { paid } = await searchParams;
+  const user = await currentUser();
+  if (user) await syncPendingPayments(user.id);
   const b = await getCustomerOrder(id);
   if (!b || b.order.status === "awaiting_payment") notFound();
   const { order, proofs, deliverables } = b;

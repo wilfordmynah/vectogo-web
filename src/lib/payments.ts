@@ -163,3 +163,33 @@ export async function applyRefund(charge: Stripe.Charge) {
     }
   }
 }
+
+/**
+ * Asks Stripe directly about this customer's unfinished checkouts and applies
+ * any that were paid. Stripe's webhook normally does this, but checking here
+ * too means an order shows up right away even if the webhook is slow or not
+ * set up yet. Safe to run often: applyPaidPayment only ever applies once.
+ */
+export async function syncPendingPayments(userId: string) {
+  try {
+    const db = supabaseAdmin();
+    const since = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: pending } = await db
+      .from("payments")
+      .select("id, stripe_checkout_session_id, orders!inner(customer_id)")
+      .eq("status", "pending")
+      .eq("orders.customer_id", userId)
+      .not("stripe_checkout_session_id", "is", null)
+      .gte("created_at", since)
+      .limit(10);
+    for (const p of pending ?? []) {
+      const session = await stripe().checkout.sessions.retrieve(p.stripe_checkout_session_id as string);
+      if (session.metadata?.payment_id !== p.id) continue;
+      if (session.payment_status === "paid") await applyPaidPayment(session);
+      else if (session.status === "expired") await markPaymentFailed(session);
+    }
+  } catch (err) {
+    // Never break a page over this; the webhook is still the main path.
+    console.error("Checking Stripe for finished payments failed:", err);
+  }
+}

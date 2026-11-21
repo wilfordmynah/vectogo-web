@@ -36,7 +36,9 @@ type CheckoutInput = {
 
 /**
  * A Checkout Session for one line item. The customer can tick "save my card"
- * for next time (upgrades, One More Thing!), and gets a receipt and an invoice PDF.
+ * for next time (upgrades, One More Thing!), and Stripe emails them a receipt.
+ * (Invoice PDFs are off: Stripe charges per invoice. Add
+ * `invoice_creation: { enabled: true }` below to turn them back on.)
  */
 export async function createCheckout(input: CheckoutInput) {
   const site = env.siteUrl();
@@ -58,7 +60,6 @@ export async function createCheckout(input: CheckoutInput) {
     // Don't combine this with setup_future_usage, which saves every card without asking.
     payment_intent_data: { metadata: { order_id: input.orderId, payment_id: input.paymentId } },
     saved_payment_method_options: { payment_method_save: "enabled" },
-    invoice_creation: { enabled: true },
     metadata,
     success_url: `${site}${input.successPath}${input.successPath.includes("?") ? "&" : "?"}session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${site}${input.cancelPath}`,

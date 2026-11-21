@@ -54,7 +54,7 @@ Your keys go in `.env.local` in the main project folder, next to `package.json`.
    Use that endpoint's signing secret on Cloudflare.
 5. Test card: `4242 4242 4242 4242`, any future date, any CVC.
 
-No products need creating in Stripe: prices come from `src/lib/config.ts`. Each payment also gets a Stripe invoice PDF for the customer's records. Stripe charges a small fee per invoice; to turn that off, change `invoice_creation: { enabled: true }` to `enabled: false` in `src/lib/stripe.ts` (customers still get Stripe's receipt). Prices are in USD, and Stripe Tax is off (Alaska has no state sales tax).
+No products need creating in Stripe: prices come from `src/lib/config.ts`. Customers get Stripe's normal emailed receipt. Invoice PDFs are off (Stripe charges per invoice); see `src/lib/stripe.ts` to turn them on. Prices are in USD, and Stripe Tax is off (Alaska has no state sales tax).
 
 ### 4. Cloudflare (hosting)
 
