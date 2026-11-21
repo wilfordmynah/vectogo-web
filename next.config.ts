@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Images are small brand PNGs; serve them as-is on Cloudflare.
+  images: { unoptimized: true },
   // Old Squarespace URLs, sent to their new homes so links and search results keep working.
   async redirects() {
     return [
@@ -15,3 +17,7 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Lets `npm run dev` read Cloudflare settings locally.
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+initOpenNextCloudflareForDev();
