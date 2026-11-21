@@ -42,14 +42,14 @@ The homepage works without any keys. The order form, accounts and admin need Sup
 
 1. In your Stripe dashboard, switch on **Test mode**.
 2. **Developers → API keys**: copy the secret key (`sk_test_…`) into `STRIPE_SECRET_KEY`.
-3. To test payments locally, install the [Stripe CLI](https://docs.stripe.com/stripe-cli) and run
+3. To test payments locally, install the [Stripe CLI](https://docs.stripe.com/stripe-cli), run `stripe login` once, then run
    `stripe listen --forward-to localhost:3000/api/stripe/webhook`. It prints a `whsec_…` secret: put it in `STRIPE_WEBHOOK_SECRET`.
 4. For the live site: **Developers → Webhooks → Add endpoint** → `https://vectogo.com/api/stripe/webhook`, with the events
    `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`.
    Use that endpoint's signing secret on Cloudflare.
 5. Test card: `4242 4242 4242 4242`, any future date, any CVC.
 
-No products need creating in Stripe: prices come from `src/lib/config.ts`. Prices are in USD, and Stripe Tax is off (Alaska has no state sales tax).
+No products need creating in Stripe: prices come from `src/lib/config.ts`. Each payment also gets a Stripe invoice PDF for the customer's records. Stripe charges a small fee per invoice; to turn that off, change `invoice_creation: { enabled: true }` to `enabled: false` in `src/lib/stripe.ts` (customers still get Stripe's receipt). Prices are in USD, and Stripe Tax is off (Alaska has no state sales tax).
 
 ### 4. Cloudflare (hosting)
 

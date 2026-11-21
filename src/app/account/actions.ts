@@ -6,7 +6,7 @@ import { env } from "@/lib/env";
 import { notifyVectogo } from "@/lib/email";
 import { forRules, getCustomerOrder } from "@/lib/orders";
 import { canBuyOneMoreThing, canRefund, canRequestChanges, canRespondToProof, canUpgrade } from "@/lib/rules";
-import { createCheckout, ensureStripeCustomer } from "@/lib/stripe";
+import { createCheckout, ensureStripeCustomer, expireOpenCheckouts } from "@/lib/stripe";
 import { requireUser, supabaseAdmin } from "@/lib/supabase/server";
 
 // Everything a customer can do on their order page. Each action loads the
@@ -61,6 +61,7 @@ export async function startUpgrade(orderId: string, to: string): Promise<Result>
   const option = upgradeOptions(b.order.package).find((o) => o.to.id === to);
   if (!option) return { error: "That upgrade isn't available." };
 
+  await expireOpenCheckouts(orderId, "upgrade");
   const db = supabaseAdmin();
   const description = `Upgrade ${PACKAGES[b.order.package].name} to ${option.to.name}`;
   const { data: payment } = await db
@@ -89,13 +90,14 @@ export async function startOneMoreThing(orderId: string, notes: string): Promise
   if (!text) return { error: "Tell us what to change." };
   if (!canBuyOneMoreThing(forRules(b))) return { error: "One More Thing! isn't available on this order right now." };
 
+  await expireOpenCheckouts(orderId, "one_more_thing");
   const db = supabaseAdmin();
   const { data: payment } = await db
     .from("payments")
     .insert({ order_id: orderId, kind: "one_more_thing", description: ONE_MORE_THING.name, amount_cents: ONE_MORE_THING.priceCents })
     .select("id")
     .single();
-  // Notes also go in a message now, in case they're longer than Stripe metadata allows.
+  // The notes ride along on the checkout so the webhook can attach them to the round.
   const session = await createCheckout({
     customerId: await ensureStripeCustomer(user.id, user.email!),
     orderId,
@@ -105,11 +107,9 @@ export async function startOneMoreThing(orderId: string, notes: string): Promise
     amountCents: ONE_MORE_THING.priceCents,
     successPath: `/account/orders/${orderId}?paid=one-more-thing`,
     cancelPath: `/account/orders/${orderId}`,
+    extraMetadata: { notes: text.slice(0, 480) },
   });
   await db.from("payments").update({ stripe_checkout_session_id: session.id }).eq("id", payment!.id);
-  // Stash the notes on the session so the webhook can attach them to the round.
-  const { stripe } = await import("@/lib/stripe");
-  await stripe().checkout.sessions.update(session.id, { metadata: { ...session.metadata, notes: text.slice(0, 480) } });
   return { url: session.url! };
 }
 
