@@ -23,14 +23,14 @@ const packages = [
     name: "Oh yeah!",
     icon: "/brand/pkg-oh-yeah.png",
     bestFor: "Best for simple logos that need a few more file types and a second look.",
-    includes: ["2 review rounds", "Adds SVG and AI"],
+    includes: ["2 review rounds", "JPG, PNG, EPS, SVG, AI", "Full color, black and white versions"],
   },
   {
     name: "I want it all!",
     icon: "/brand/pkg-want-it-all.png",
     bestFor:
       "Best for complex logos, and anyone who wants the works. Gradients, shading, custom lettering? This is your package.",
-    includes: ["Unlimited review rounds", "Adds a logo guide"],
+    includes: ["Unlimited review rounds", "Every file type and color version", "A brand sheet: versions, colors, usage"],
     featured: true,
   },
 ];
@@ -168,9 +168,9 @@ export default function Home() {
 
               <ol className="relative grid gap-10 md:grid-cols-3">
                 {[
-                  ["Send it", "Upload your best logo file and pick a package. We'll suggest one if you're not sure."],
-                  ["We get to work", "A real designer checks your logo, then redraws it by hand. You review the proof."],
-                  ["Good to go", "Download your crisp new files from your account, ready for print, web and everything else."],
+                  ["Send it", "Pick a package, upload your best logo file and tell us what matters most."],
+                  ["We get to work", "We reply within 24 hours, and your first proof follows 1 to 2 days later. Ask for changes or approve it."],
+                  ["Good to go", "Download your crisp new files from your account, any time, ready for print, web and everything else."],
                 ].map(([title, body], i) => (
                   <li key={title} data-rise className="pt-28">
                     <span className="font-display text-6xl font-black text-purple">{i + 1}</span>
@@ -212,9 +212,9 @@ export default function Home() {
             </div>
 
             <blockquote data-rise className="mx-auto mt-16 max-w-2xl text-center text-lg">
-              <strong className="font-display text-2xl font-black">A real designer checks every order before we start.</strong>
+              <strong className="font-display text-2xl font-black">A real designer redraws every logo by hand.</strong>
               <br />
-              If your logo needs a different package, we&apos;ll tell you why and you decide. Every order is 100% refundable.
+              Not loving it after the first round? Get a full refund. Out of rounds? Upgrade for the price difference, or add One More Thing! for $29.
             </blockquote>
           </div>
         </section>
