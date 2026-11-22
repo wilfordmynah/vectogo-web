@@ -140,6 +140,8 @@ export default async function OrderPage({
             <div className="mt-4 grid gap-6 rounded-3xl border-2 border-black/10 p-5 sm:grid-cols-2">
               <dl className="space-y-3 text-sm">
                 <Field label="Business name" value={order.brief.businessName} />
+                <Field label="Name exactly as in the logo" value={order.brief.logoText} />
+                <Field label="Taglines in the logo" value={order.brief.taglines} />
                 <Field label="Fonts" value={order.brief.fontsUnsure ? "Not sure, you figure it out" : order.brief.fonts} />
                 {order.brief.colors && (
                   <div>

@@ -21,7 +21,7 @@ const STEPS: { id: Step; label: string }[] = [
   { id: "review", label: "Review & pay" },
 ];
 const KEY = "vg-order-draft";
-const emptyBrief: Brief = { businessName: "", fonts: "", fontsUnsure: false, colors: "", priorities: "", notes: "" };
+const emptyBrief: Brief = { businessName: "", logoText: "", taglines: "", fonts: "", fontsUnsure: false, colors: "", priorities: "", notes: "" };
 
 type Upload = { path: string; name: string; preview?: string; lowRes?: boolean };
 
@@ -329,6 +329,16 @@ function BriefStep({
         <input required className={field} value={brief.businessName} onChange={set("businessName")} maxLength={120} />
       </label>
       <label className="block">
+        <span className="font-medium">Full name exactly as it appears in the logo</span>
+        <span className="block text-sm opacity-70">Every letter, capital and punctuation mark, so we spell it just right.</span>
+        <input className={field} value={brief.logoText} onChange={set("logoText")} maxLength={200} placeholder="e.g. Silly Sun Co. & Sons" />
+      </label>
+      <label className="block">
+        <span className="font-medium">Taglines in the logo</span>
+        <span className="block text-sm opacity-70">Any slogan or extra words, exactly as written. One per line.</span>
+        <textarea className={field} rows={2} value={brief.taglines} onChange={set("taglines")} maxLength={500} placeholder="e.g. Est. 1998 · Always shining" />
+      </label>
+      <label className="block">
         <span className="font-medium">Fonts used</span>
         <input className={field} value={brief.fonts} onChange={set("fonts")} disabled={brief.fontsUnsure} placeholder="e.g. Futura Bold" />
         <span className="mt-2 flex items-center gap-2 text-sm">
@@ -476,6 +486,16 @@ function ReviewStep({
         <Row title="Brief" onEdit={() => onEdit("brief")}>
           <strong>{draft.brief.businessName}</strong>
           {draft.brief.fontsUnsure ? " · fonts: not sure" : draft.brief.fonts ? ` · fonts: ${draft.brief.fonts}` : ""}
+          {draft.brief.logoText && (
+            <span className="mt-1 block text-sm">
+              <span className="opacity-60">In the logo:</span> {draft.brief.logoText}
+            </span>
+          )}
+          {draft.brief.taglines && (
+            <span className="mt-1 block whitespace-pre-wrap text-sm">
+              <span className="opacity-60">Taglines:</span> {draft.brief.taglines}
+            </span>
+          )}
           {draft.brief.colors && (
             <span className="mt-2 block">
               <ColorSwatches value={draft.brief.colors} />

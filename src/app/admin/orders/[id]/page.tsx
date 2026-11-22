@@ -51,6 +51,8 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
           <section>
             <h2 className="font-display text-2xl font-black">Brief</h2>
             <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+              <Item label="Name exactly as in the logo" value={order.brief.logoText} />
+              <Item label="Taglines in the logo" value={order.brief.taglines} />
               <Item label="Fonts" value={order.brief.fontsUnsure ? "Not sure" : order.brief.fonts} />
               {order.brief.colors && (
                 <div className="rounded-2xl bg-pink/50 p-3">

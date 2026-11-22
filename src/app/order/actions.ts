@@ -6,6 +6,10 @@ import { createCheckout, ensureStripeCustomer } from "@/lib/stripe";
 
 export type Brief = {
   businessName: string;
+  /** The name exactly as it's written in the logo (spelling, capitals, punctuation). */
+  logoText: string;
+  /** Any taglines or slogans in the logo. */
+  taglines: string;
   fonts: string;
   fontsUnsure: boolean;
   colors: string;
@@ -31,6 +35,8 @@ export async function startCheckout(draft: Draft): Promise<{ error?: string; url
   if (!files.length) return { error: "Upload your logo first." };
   const brief: Brief = {
     businessName: clip(draft.brief?.businessName, 120),
+    logoText: clip(draft.brief?.logoText, 200),
+    taglines: clip(draft.brief?.taglines, 500),
     fonts: clip(draft.brief?.fonts, 300),
     fontsUnsure: Boolean(draft.brief?.fontsUnsure),
     colors: clip(draft.brief?.colors, 300),

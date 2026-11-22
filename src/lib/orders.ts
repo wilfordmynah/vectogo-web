@@ -11,6 +11,8 @@ export type OrderRow = {
   status: OrderStatus;
   brief: {
     businessName?: string;
+    logoText?: string;
+    taglines?: string;
     fonts?: string;
     fontsUnsure?: boolean;
     colors?: string;
