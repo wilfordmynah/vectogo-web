@@ -8,6 +8,7 @@ import { forRules, getCustomerOrder } from "@/lib/orders";
 import { canBuyOneMoreThing, canRefund, canRequestChanges, canRespondToProof, canUpgrade } from "@/lib/rules";
 import { createCheckout, ensureStripeCustomer, expireOpenCheckouts } from "@/lib/stripe";
 import { requireUser, supabaseAdmin } from "@/lib/supabase/server";
+import { EXTRA_EXTENSIONS, MAX_UPLOAD_BYTES, extraPathPattern, fileNameOf, safeFileName } from "@/lib/uploads";
 
 // Everything a customer can do on their order page. Each action loads the
 // order through Row Level Security first, so a customer can only act on
@@ -125,12 +126,47 @@ export async function requestRefund(orderId: string, reason: string): Promise<Re
   return {};
 }
 
-export async function sendMessage(orderId: string, body: string): Promise<Result> {
+/** A one-time link to upload an extra file for a message on this order. */
+export async function messageUploadUrl(
+  orderId: string,
+  file: { name: string; size: number },
+): Promise<{ error?: string; path?: string; token?: string }> {
+  await loadOwn(orderId);
+  const name = safeFileName(file.name);
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  if (!EXTRA_EXTENSIONS.includes(ext)) {
+    return { error: "Send images, PDF, AI, EPS, PSD, fonts or a ZIP." };
+  }
+  if (!file.size || file.size > MAX_UPLOAD_BYTES) return { error: "That file is over 25 MB. Got a smaller version?" };
+  const path = `orders/${orderId}/extra/${crypto.randomUUID()}/${name}`;
+  const { data, error } = await supabaseAdmin().storage.from("uploads").createSignedUploadUrl(path);
+  if (error || !data) return { error: "Upload isn't available right now." };
+  return { path: data.path, token: data.token };
+}
+
+export async function sendMessage(orderId: string, body: string, attachments: string[] = []): Promise<Result> {
   const b = await loadOwn(orderId);
   const text = body.trim().slice(0, 4000);
-  if (!text) return { error: "Write a message first." };
-  await supabaseAdmin().from("messages").insert({ order_id: orderId, from_vectogo: false, body: text });
-  await notifyVectogo(`New message on order #${b.order.number}`, [text], adminLink(orderId));
+  const pattern = extraPathPattern(orderId);
+  const files = attachments.filter((p) => pattern.test(p)).slice(0, 10);
+  if (!text && !files.length) return { error: "Write a message or attach a file first." };
+  const row: { order_id: string; from_vectogo: boolean; body: string; attachments?: string[] } = {
+    order_id: orderId,
+    from_vectogo: false,
+    body: text,
+  };
+  if (files.length) row.attachments = files;
+  const { error } = await supabaseAdmin().from("messages").insert(row);
+  if (error) {
+    console.error("Message failed:", error.message);
+    return {
+      error: /attachments/.test(error.message)
+        ? "Attachments need one more database step: run supabase/migrations/0003_message_files.sql in Supabase."
+        : "Couldn't send that. Please try again.",
+    };
+  }
+  const lines = [text, ...files.map((p) => `Attached: ${fileNameOf(p)}`)].filter(Boolean);
+  await notifyVectogo(`New message on order #${b.order.number}`, lines, adminLink(orderId));
   revalidatePath(`/account/orders/${orderId}`);
   return {};
 }

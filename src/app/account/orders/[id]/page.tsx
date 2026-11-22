@@ -6,6 +6,8 @@ import Messages from "@/components/Messages";
 import { PACKAGES, money, upgradeOptions, ONE_MORE_THING } from "@/lib/config";
 import { forRules, getCustomerOrder, signedUrls } from "@/lib/orders";
 import { syncPendingPayments } from "@/lib/payments";
+import ColorSwatches from "@/components/ColorSwatches";
+import { fileNameOf, isImagePath } from "@/lib/uploads";
 import { currentUser } from "@/lib/supabase/server";
 import {
   STATUS_HELP,
@@ -44,6 +46,13 @@ export default async function OrderPage({
   const fileUrls = unlocked
     ? await signedUrls("finals", deliverables.map((d) => d.file_path), (p) => p.split("/").pop()!)
     : {};
+
+  // Everything the customer has sent us: the original logos plus files attached to messages.
+  const sentFiles = [...order.logo_paths, ...b.messages.flatMap((m) => (m.from_vectogo ? [] : (m.attachments ?? [])))];
+  const allAttachments = b.messages.flatMap((m) => m.attachments ?? []);
+  const uploadUrls = await signedUrls("uploads", [...new Set([...sentFiles, ...allAttachments])]);
+  const displayName = (p: string, i: number) =>
+    i < order.logo_paths.length ? (order.brief.fileNames?.[i] ?? fileNameOf(p)) : fileNameOf(p);
 
   const step = TIMELINE.indexOf(order.status === "revision_requested" ? "in_progress" : order.status);
 
@@ -126,7 +135,48 @@ export default async function OrderPage({
             </section>
           )}
 
-          <Messages orderId={order.id} messages={b.messages} />
+          <section>
+            <h2 className="font-display text-2xl font-black">Your brief and files</h2>
+            <div className="mt-4 grid gap-6 rounded-3xl border-2 border-black/10 p-5 sm:grid-cols-2">
+              <dl className="space-y-3 text-sm">
+                <Field label="Business name" value={order.brief.businessName} />
+                <Field label="Fonts" value={order.brief.fontsUnsure ? "Not sure, you figure it out" : order.brief.fonts} />
+                {order.brief.colors && (
+                  <div>
+                    <dt className="opacity-60">Brand colors</dt>
+                    <dd className="mt-1">
+                      <ColorSwatches value={order.brief.colors} />
+                    </dd>
+                  </div>
+                )}
+                <Field label="What matters most" value={order.brief.priorities} />
+                <Field label="Anything else" value={order.brief.notes} />
+              </dl>
+              <div>
+                <p className="text-sm opacity-60">Files you sent</p>
+                <ul className="mt-2 grid grid-cols-3 gap-3">
+                  {sentFiles.map((p, i) => (
+                    <li key={p}>
+                      <a href={uploadUrls[p]} target="_blank" rel="noreferrer" className="block text-center text-xs" title={displayName(p, i)}>
+                        {isImagePath(p) && uploadUrls[p] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={uploadUrls[p]} alt="" className="aspect-square w-full rounded-xl border-2 border-black/10 bg-white object-contain p-1" />
+                        ) : (
+                          <span className="grid aspect-square w-full place-items-center rounded-xl bg-pink font-bold uppercase">
+                            {p.split(".").pop()}
+                          </span>
+                        )}
+                        <span className="mt-1 block truncate">{displayName(p, i)}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-xs opacity-60">Need to send another version? Attach it in Messages below.</p>
+              </div>
+            </div>
+          </section>
+
+          <Messages orderId={order.id} messages={b.messages} fileUrls={uploadUrls} />
         </div>
 
         <aside className="space-y-6">
@@ -146,16 +196,6 @@ export default async function OrderPage({
             isDelivered={order.status === "delivered"}
           />
 
-          <section className="rounded-2xl border-2 border-black/10 p-5 text-sm">
-            <h2 className="font-display text-lg font-black">Your brief</h2>
-            <dl className="mt-2 space-y-2">
-              <Field label="Fonts" value={order.brief.fontsUnsure ? "Not sure" : order.brief.fonts} />
-              <Field label="Colors" value={order.brief.colors} />
-              <Field label="What matters most" value={order.brief.priorities} />
-              <Field label="Notes" value={order.brief.notes} />
-              <Field label="Files sent" value={order.brief.fileNames?.join(", ")} />
-            </dl>
-          </section>
         </aside>
       </div>
     </PortalShell>

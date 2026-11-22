@@ -1,19 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { LOGO_TYPES, MAX_UPLOAD_BYTES } from "@/lib/uploads";
 
 // Hands the order form a one-time link to upload a logo straight into private
 // storage. Visitors can upload before signing in, so files land in a drafts
 // folder and are tied to an order at checkout.
 
-const ALLOWED = new Map([
-  ["image/jpeg", "jpg"],
-  ["image/png", "png"],
-  ["image/gif", "gif"],
-  ["image/webp", "webp"],
-  ["image/svg+xml", "svg"],
-  ["application/pdf", "pdf"],
-]);
-const MAX_BYTES = 25 * 1024 * 1024;
+const ALLOWED = LOGO_TYPES;
+const MAX_BYTES = MAX_UPLOAD_BYTES;
 
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => null)) as { type?: string; size?: number } | null;

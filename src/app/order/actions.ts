@@ -11,6 +11,8 @@ export type Brief = {
   colors: string;
   priorities: string;
   notes: string;
+  /** Browser only: the logo's colors were already picked out once. */
+  colorsAuto?: boolean;
 };
 
 export type Draft = {

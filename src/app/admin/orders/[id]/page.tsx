@@ -4,6 +4,8 @@ import PortalShell from "@/components/PortalShell";
 import StatusBadge from "@/components/StatusBadge";
 import Messages from "@/components/Messages";
 import AdminOrderActions from "@/components/AdminOrderActions";
+import ColorSwatches from "@/components/ColorSwatches";
+import { fileNameOf } from "@/lib/uploads";
 import { PACKAGES, money } from "@/lib/config";
 import { forRules, getOrderAdmin, signedUrls } from "@/lib/orders";
 import { canRefund, roundsLeft } from "@/lib/rules";
@@ -20,6 +22,8 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
   const pkg = PACKAGES[order.package];
 
   const logoUrls = await signedUrls("uploads", order.logo_paths, (p) => `order-${order.number}-${p.split("/").pop()}`);
+  const extraFiles = b.messages.flatMap((m) => m.attachments ?? []);
+  const extraUrls = await signedUrls("uploads", extraFiles, (p) => `order-${order.number}-${fileNameOf(p)}`);
   const proofUrls = await signedUrls("proofs", proofs.map((p) => p.file_path));
   const finalUrls = await signedUrls("finals", deliverables.map((d) => d.file_path));
   const paidTotal = payments.filter((p) => p.status === "paid").reduce((n, p) => n + p.amount_cents, 0);
@@ -48,7 +52,14 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
             <h2 className="font-display text-2xl font-black">Brief</h2>
             <dl className="mt-3 grid gap-3 sm:grid-cols-2">
               <Item label="Fonts" value={order.brief.fontsUnsure ? "Not sure" : order.brief.fonts} />
-              <Item label="Colors" value={order.brief.colors} />
+              {order.brief.colors && (
+                <div className="rounded-2xl bg-pink/50 p-3">
+                  <dt className="text-sm opacity-60">Colors</dt>
+                  <dd className="mt-1">
+                    <ColorSwatches value={order.brief.colors} />
+                  </dd>
+                </div>
+              )}
               <Item label="What matters most" value={order.brief.priorities} />
               <Item label="Notes" value={order.brief.notes} />
             </dl>
@@ -57,6 +68,11 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
               {order.logo_paths.map((p, i) => (
                 <li key={p}>
                   <a href={logoUrls[p]} className="vg-pill !py-2 text-sm">{order.brief.fileNames?.[i] ?? `File ${i + 1}`}</a>
+                </li>
+              ))}
+              {extraFiles.map((p) => (
+                <li key={p}>
+                  <a href={extraUrls[p]} className="vg-pill !py-2 text-sm">📎 {fileNameOf(p)}</a>
                 </li>
               ))}
             </ul>
@@ -83,7 +99,7 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
             </ul>
           </section>
 
-          <Messages orderId={order.id} messages={b.messages} asAdmin />
+          <Messages orderId={order.id} messages={b.messages} fileUrls={extraUrls} asAdmin />
         </div>
 
         <aside className="space-y-6">

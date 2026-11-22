@@ -85,6 +85,14 @@ async function run(): Promise<Check[]> {
                 ? "the orders table isn't there. Run supabase/migrations/0001_orders.sql, then 0002_grants.sql, in the SQL Editor."
                 : `can't read orders: ${tableErr.message}`,
       });
+      if (!tableErr) {
+        const { error: colErr } = await db.from("messages").select("attachments").limit(1);
+        checks.push({
+          name: "Message attachments",
+          ok: !colErr,
+          note: colErr ? "run supabase/migrations/0003_message_files.sql in the SQL Editor" : "ready",
+        });
+      }
       const { data: buckets, error: bucketErr } = await db.storage.listBuckets();
       const have = new Set((buckets ?? []).map((b) => b.id));
       const missing = ["uploads", "proofs", "finals"].filter((b) => !have.has(b));

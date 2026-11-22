@@ -6,6 +6,8 @@ import { supabaseBrowser } from "@/lib/supabase/browser";
 import { startCheckout, type Brief, type Draft } from "@/app/order/actions";
 import SignInForm from "@/components/SignInForm";
 import FileTypeIcons from "@/components/FileTypeIcons";
+import ColorSwatches from "@/components/ColorSwatches";
+import { extractTopColors, formatColors, normalizeHex, parseColors } from "@/lib/colors";
 
 // The guided order form: package → upload → brief → review and pay.
 // Progress is kept in this browser, so a visitor can leave to open the
@@ -109,7 +111,7 @@ export default function OrderWizard({
           <UploadStep files={files} setFiles={setFiles} onNext={() => setStep("brief")} onBack={() => setStep("package")} />
         )}
         {step === "brief" && (
-          <BriefStep brief={brief} setBrief={setBrief} onNext={() => setStep("review")} onBack={() => setStep("upload")} />
+          <BriefStep brief={brief} setBrief={setBrief} files={files} onNext={() => setStep("review")} onBack={() => setStep("upload")} />
         )}
         {step === "review" && pkg && (
           <ReviewStep
@@ -274,14 +276,41 @@ function isLowRes(src: string) {
 function BriefStep({
   brief,
   setBrief,
+  files,
   onNext,
   onBack,
 }: {
   brief: Brief;
   setBrief: React.Dispatch<React.SetStateAction<Brief>>;
+  files: Upload[];
   onNext: () => void;
   onBack: () => void;
 }) {
+  const colors = parseColors(brief.colors);
+  const setColors = (next: string[]) => setBrief((b) => ({ ...b, colors: formatColors(next.slice(0, 10)) }));
+  const [found, setFound] = useState<string[]>([]);
+
+  // Pick the top 3 colors from the first logo we can read, once.
+  const firstPreview = files.find((f) => f.preview)?.preview;
+  useEffect(() => {
+    if (brief.colorsAuto || !firstPreview) return;
+    let cancelled = false;
+    extractTopColors(firstPreview, 3)
+      .then((top) => {
+        if (cancelled) return;
+        setFound(top);
+        setBrief((b) => {
+          if (b.colorsAuto) return b;
+          const merged = [...new Set([...top, ...parseColors(b.colors)])].slice(0, 10);
+          return { ...b, colors: formatColors(merged), colorsAuto: true };
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [brief.colorsAuto, firstPreview, setBrief]);
+
   const set = (k: keyof Brief) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setBrief((b) => ({ ...b, [k]: e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value }));
   const field = "w-full rounded-2xl border-2 border-black/20 px-4 py-3 outline-none focus:border-purple";
@@ -306,10 +335,7 @@ function BriefStep({
           <input type="checkbox" checked={brief.fontsUnsure} onChange={set("fontsUnsure")} /> Not sure, you figure it out
         </span>
       </label>
-      <label className="block">
-        <span className="font-medium">Brand colors</span>
-        <input className={field} value={brief.colors} onChange={set("colors")} placeholder="Hex codes if you have them, e.g. #6F07E5" />
-      </label>
+      <ColorsField colors={colors} setColors={setColors} fromLogo={found} field={field} />
       <label className="block">
         <span className="font-medium">What matters most?</span>
         <textarea className={field} rows={3} value={brief.priorities} onChange={set("priorities")} placeholder="Color accuracy, making this logo happy…" />
@@ -323,6 +349,91 @@ function BriefStep({
         <button className="vg-pill vg-pill--solid">Next: review</button>
       </div>
     </form>
+  );
+}
+
+function ColorsField({
+  colors,
+  setColors,
+  fromLogo,
+  field,
+}: {
+  colors: string[];
+  setColors: (c: string[]) => void;
+  fromLogo: string[];
+  field: string;
+}) {
+  const [hex, setHex] = useState("");
+  const [bad, setBad] = useState(false);
+  const preview = normalizeHex(hex);
+
+  function add() {
+    const c = normalizeHex(hex);
+    if (!c) {
+      setBad(true);
+      return;
+    }
+    if (!colors.includes(c)) setColors([...colors, c]);
+    setHex("");
+    setBad(false);
+  }
+
+  return (
+    <div>
+      <span className="font-medium">Brand colors</span>
+      <p className="text-sm opacity-70">
+        {fromLogo.length && fromLogo.some((c) => colors.includes(c))
+          ? "We picked these out of your logo. Tap × to remove any, or add your exact hex codes."
+          : "Got exact hex codes? Add them one at a time."}
+      </p>
+      <div className="mt-2 flex gap-2">
+        <span className="relative min-w-0 flex-1">
+          <input
+            className={`${field} pl-12`}
+            value={hex}
+            onChange={(e) => {
+              setHex(e.target.value);
+              setBad(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                add();
+              }
+            }}
+            placeholder="#6F07E5"
+            maxLength={7}
+            aria-label="Hex color code"
+            aria-invalid={bad}
+          />
+          <span
+            className="absolute left-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full border border-black/20"
+            style={{ background: preview ?? "transparent" }}
+            aria-hidden
+          />
+        </span>
+        <button type="button" className="vg-pill shrink-0" onClick={add}>Add</button>
+      </div>
+      {bad && <p className="mt-1 text-sm text-red-600">Hex codes look like #6F07E5.</p>}
+      {colors.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-2">
+          {colors.map((c) => (
+            <li key={c} className="flex items-center gap-2 rounded-full border-2 border-black/10 py-1 pl-1 pr-2">
+              <span className="h-7 w-7 rounded-full border border-black/15" style={{ background: c }} aria-hidden />
+              <span className="font-mono text-sm">{c}</span>
+              <button
+                type="button"
+                onClick={() => setColors(colors.filter((x) => x !== c))}
+                className="grid h-6 w-6 place-items-center rounded-full text-lg leading-none hover:bg-pink"
+                aria-label={`Remove ${c}`}
+              >
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -365,7 +476,11 @@ function ReviewStep({
         <Row title="Brief" onEdit={() => onEdit("brief")}>
           <strong>{draft.brief.businessName}</strong>
           {draft.brief.fontsUnsure ? " · fonts: not sure" : draft.brief.fonts ? ` · fonts: ${draft.brief.fonts}` : ""}
-          {draft.brief.colors && ` · colors: ${draft.brief.colors}`}
+          {draft.brief.colors && (
+            <span className="mt-2 block">
+              <ColorSwatches value={draft.brief.colors} />
+            </span>
+          )}
         </Row>
       </div>
 

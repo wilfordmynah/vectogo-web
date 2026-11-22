@@ -50,7 +50,7 @@ export type PaymentRow = {
   created_at: string;
   paid_at: string | null;
 };
-export type MessageRow = { id: string; from_vectogo: boolean; body: string; created_at: string };
+export type MessageRow = { id: string; from_vectogo: boolean; body: string; created_at: string; attachments?: string[] };
 export type DeliverableRow = { id: string; file_path: string; label: string; created_at: string };
 
 export type OrderBundle = {
